@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ShelvesConfig</class>
+ <widget class="QWidget" name="ShelvesConfig">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Known shelf names:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QListWidget" name="shelfList"/>
+   </item>
+   <item>
+    <widget class="QPushButton" name="addShelfButton">
+     <property name="text">
+      <string>Add shelf</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="deleteShelfButton">
+     <property name="text">
+      <string>Delete selected shelf</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="renameScriptLabel">
+     <property name="text">
+      <string>Rename script fragment (example):</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTextEdit" name="renameScriptPreview"/>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
