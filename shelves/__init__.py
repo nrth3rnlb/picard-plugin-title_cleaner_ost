@@ -5,18 +5,19 @@ PLUGIN_VERSION = "1.2"
 PLUGIN_API_VERSIONS = ["2.0", "2.1", "2.2", "2.3"]
 
 from picard import config, log
-from picard.metadata import register_track_metadata_processor
-from picard.ui.itemviews import BaseAction, register_album_action, register_track_action
+from picard.metadata import register_track_metadata_processor # type: ignore
+from picard.ui.itemviews import BaseAction, register_album_action, register_track_action # type: ignore
 from PyQt5 import QtWidgets
-import os
 import re
 
 TAG_KEY = "shelves_shelf"
 UNDO_TAG_KEY = "shelves_shelf_backup"
 DEFAULT_SHELVES = ["Standard", "Incoming"]
 
+
 def get_library_path():
     return config.setting.get("move_files_to", "").rstrip("/")
+
 
 def get_shelf_from_path(path):
     library_path = get_library_path()
@@ -26,11 +27,13 @@ def get_shelf_from_path(path):
     match = re.search(rf"{escaped}/([^/]+)/", path)
     return match.group(1) if match else "Standard"
 
+
 def update_config_shelves(shelf_name):
     shelves = config.setting.setdefault("shelves_list", [])
     if shelf_name not in shelves:
         shelves.append(shelf_name)
         config.setting["shelves_list"] = shelves
+
 
 def shelf_metadata_processor(track_metadata):
     if TAG_KEY not in track_metadata or not track_metadata[TAG_KEY]:
@@ -38,7 +41,9 @@ def shelf_metadata_processor(track_metadata):
         track_metadata[TAG_KEY] = shelf
         update_config_shelves(shelf)
 
+
 register_track_metadata_processor(shelf_metadata_processor)
+
 
 class SetShelfAction(BaseAction):
     NAME = "Change shelf…"
@@ -59,6 +64,7 @@ class SetShelfAction(BaseAction):
                 metadata[UNDO_TAG_KEY] = metadata.get(TAG_KEY, "")
                 metadata[TAG_KEY] = shelf_name
 
+
 class UndoShelfAction(BaseAction):
     NAME = "Restore previous shelf"
 
@@ -71,6 +77,7 @@ class UndoShelfAction(BaseAction):
 
     def is_enabled(self, objs):
         return any(UNDO_TAG_KEY in obj.metadata for obj in objs)
+
 
 def generate_rename_script_fragment(shelf_name=None):
     library_path = get_library_path()
@@ -85,6 +92,7 @@ def generate_rename_script_fragment(shelf_name=None):
         f"$join({library_path},%_basefolder%/<Artist>/<Album>/<Title>)"
     )
     return fragment
+
 
 register_album_action(SetShelfAction())
 register_track_action(SetShelfAction())
