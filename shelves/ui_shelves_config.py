@@ -11,6 +11,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
+# noinspection PyAttributeOutsideInit
 class Ui_ShelvesConfigPage(object):
     def setupUi(self, ShelvesConfigPage):
         ShelvesConfigPage.setObjectName("ShelvesConfigPage")
