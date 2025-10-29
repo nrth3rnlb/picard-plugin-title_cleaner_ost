@@ -1,0 +1,54 @@
+[project]
+name = "picard-plugins-nrth3rnlb"
+version = "1.0.0"
+description = "Collection of MusicBrainz Picard plugins"
+authors = [
+    {name = "nrth3rnlb"}
+]
+requires-python = ">=3.8"
+dependencies = [
+    "PyQt5>=5.15.0",
+    "PyYAML>=6.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["shelves*", "remove_releasetitle_ost_indicator*"]
+exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["shelves/tests", "remove_releasetitle_ost_indicator/tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["shelves", "remove_releasetitle_ost_indicator"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/shelves_config_ui.py",
+    "*/ui_options_*.py"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod"
+]
