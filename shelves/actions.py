@@ -27,7 +27,7 @@ class SetShelfAction(BaseAction):
 
     NAME = "Set shelf name..."
 
-    # Type hint for tagger attribute from BaseAction
+    # Type hint for the tagger attribute from BaseAction
     tagger: Any
 
     def callback(self, objs: List[Any]) -> None:
@@ -101,7 +101,7 @@ class SetShelfAction(BaseAction):
     @staticmethod
     def _set_shelf_recursive(obj: Any, shelf_name: str) -> None:
         """
-        Set shelf name recursively on all files in an object.
+        Set the shelf name recursively on all files in an object.
 
         Args:
             obj: Picard object (album, track, etc.)

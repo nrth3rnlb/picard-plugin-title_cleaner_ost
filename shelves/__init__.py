@@ -4,7 +4,7 @@
 Shelves Plugin for MusicBrainz Picard.
 
 This plugin adds virtual shelf management to MusicBrainz Picard,
-allowing music files to be organized by top-level folders.
+allowing music files to be organised by top-level folders.
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ shelf_manager = ShelfManager()
 
 # Wrapper classes to ensure proper plugin registration
 class ShelvesOptionsPage(_ShelvesOptionsPageBase):
-    """Wrapper class for ShelvesOptionsPage to ensure proper plugin registration."""
+    """Wrapper class for the ShelvesOptionsPage to ensure proper plugin registration."""
     pass
 
 
@@ -99,7 +99,7 @@ register_options_page(ShelvesOptionsPage)
 # Register metadata processor
 register_track_metadata_processor(_set_shelf_in_metadata_wrapper)
 
-# Register script function for use in file naming
+# Register a script function for use in file naming
 register_script_function(func_shelf, "shelf")
 
 log.info(

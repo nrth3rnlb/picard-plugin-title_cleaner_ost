@@ -19,7 +19,7 @@ class ShelfManager:
     """Manages shelf assignments and state with conflict detection."""
 
     def __init__(self) -> None:
-        """Initialize the shelf manager."""
+        """Initialise the shelf manager."""
         self._shelves_by_album: Dict[str, str] = {}
         self._shelf_votes: Dict[str, Counter] = {}
 

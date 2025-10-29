@@ -120,7 +120,7 @@ def get_shelf_from_path(path: str, base_path: Optional[str] = None) -> str:
         path_obj = Path(path).resolve()
         base_obj = Path(base_path).resolve()
 
-        # Check if path is under base_path
+        # Check if a path is under base_path
         try:
             relative = path_obj.relative_to(base_obj)
         except ValueError:
@@ -132,10 +132,10 @@ def get_shelf_from_path(path: str, base_path: Optional[str] = None) -> str:
             )
             return _get_shelf_from_path_fallback(path)
 
-        # First directory component is the shelf
+        # The first directory component is the shelf
         parts = relative.parts
         if not parts or parts[0] == path_obj.name:
-            # File is directly in base directory
+            # File is directly in the base directory
             log.debug("%s: File is in base directory, no shelf", PLUGIN_NAME)
             return ShelfConstants.DEFAULT_SHELF
 
@@ -166,7 +166,7 @@ def get_shelf_from_path(path: str, base_path: Optional[str] = None) -> str:
 
 def _get_shelf_from_path_fallback(path: str) -> str:
     """
-    Fallback method to extract shelf when base path is not configured.
+    Fallback method to extract shelf when a base path is not configured.
     Args:
         path: Full file path
     Returns:

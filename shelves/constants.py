@@ -9,7 +9,7 @@ from __future__ import annotations
 
 class ShelfConstants:
     """Central constants for the Shelves plugin."""
-
+    MUSICBRAINZ_ALBUMID = "musicbrainz_albumid"
     TAG_KEY = "shelf"
     BACKUP_TAG_KEY = "shelf_backup"
     DEFAULT_SHELF = "Standard"

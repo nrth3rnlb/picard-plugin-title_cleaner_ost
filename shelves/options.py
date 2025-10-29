@@ -55,7 +55,7 @@ class ShelvesOptionsPage(OptionsPage):
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
         """
-        Initialize the options page.
+        Initialise the option page.
 
         Args:
             parent: Parent widget
@@ -80,7 +80,7 @@ class ShelvesOptionsPage(OptionsPage):
         )
 
     def load(self) -> None:
-        """Load known shelves from config."""
+        """Load already known shelves from config."""
         shelves = sorted(get_known_shelves())
         self.ui.shelf_list.clear()
         self.ui.shelf_list.addItems(shelves)
@@ -262,13 +262,13 @@ $set(_shelffolder,$if($not($eq(%_shelffolder%,)),%_shelffolder%/))
 $if2(%albumartist%,%artist%)/%album%/%title%"""
 
     def on_shelf_list_selection_changed(self) -> None:
-        """ Enable / disable remove button based on selection. """
+        """ Enable / disable the remove button based on selection. """
         self.ui.remove_shelf_button.setEnabled(
             self.ui.shelf_list.currentItem() is not None
         )
 
     def on_workflow_enabled_changed(self) -> None:
-        """ Handle workflow enabled state change. """
+        """ Handle workflow-enabled state change. """
         is_enabled = self.ui.workflow_enabled.isChecked()
         log.debug("%s: on_workflow_enabled_changed: %s", PLUGIN_NAME, is_enabled)
         self.ui.workflow_transitions.setEnabled(is_enabled)
@@ -290,7 +290,7 @@ $if2(%albumartist%,%artist%)/%album%/%title%"""
 
     def _get_existing_shelves(self) -> Set[str]:
         """
-        Get set of currently listed shelves.
+        Get a set of currently listed shelves.
 
         Returns: Set of shelf names
         """

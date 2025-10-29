@@ -15,6 +15,7 @@ from .constants import ShelfConstants
 from .utils import add_known_shelf, get_shelf_from_path
 
 
+
 PLUGIN_NAME = "Shelves"
 
 
@@ -28,7 +29,7 @@ def file_post_save_processor(file: Any, shelf_manager: Any) -> None:
     try:
         log.debug("%s: Processing file: %s", PLUGIN_NAME, file.filename)
 
-        album_id = file.metadata.get("musicbrainz_albumid")
+        album_id = file.metadata.get(ShelfConstants.MUSICBRAINZ_ALBUMID)
         if album_id:
             shelf_manager.clear_album(album_id)
 
@@ -52,7 +53,7 @@ def file_post_load_processor(file: Any, shelf_manager: Any) -> None:
         add_known_shelf(shelf)
         log.debug("%s: Set shelf '%s' for: %s", PLUGIN_NAME, shelf, file.filename)
 
-        album_id = file.metadata.get("musicbrainz_albumid")
+        album_id = file.metadata.get(ShelfConstants.MUSICBRAINZ_ALBUMID)
         if album_id:
             shelf_manager.vote_for_shelf(album_id, shelf)
 
@@ -65,7 +66,7 @@ def set_shelf_in_metadata(
         _album: Any, metadata: Dict[str, Any], _track: Any, _release: Any, shelf_manager: Any
 ) -> None:
     """
-    Set shelf in track metadata from album assignment.
+    Set a shelf in track metadata from album assignment.
 
     Args:
         _album: Album object (unused, required by Picard API)
@@ -74,7 +75,7 @@ def set_shelf_in_metadata(
         _release: Release object (unused, required by Picard API)
         shelf_manager: ShelfManager instance
     """
-    album_id = metadata.get("musicbrainz_albumid")
+    album_id = metadata.get(ShelfConstants.MUSICBRAINZ_ALBUMID)
     if not album_id:
         return
 
