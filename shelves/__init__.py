@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""""
+"""
 Shelves Plugin for MusicBrainz Picard.
 
 This plugin adds virtual shelf management to MusicBrainz Picard,
@@ -83,10 +83,7 @@ DEFAULT_SHELVES = {
 
 
 class ShelfManager:
-    """Manages
-    shelf
-    assignments and state
-    with conflict detection."""
+    """Manages shelf assignments and state with conflict detection."""
 
     def __init__(self) -> None:
         """Initialize the shelf manager."""
@@ -210,7 +207,12 @@ def add_known_shelf(shelf_name: str) -> None:
 
 
 def remove_known_shelf(shelf_name: str) -> None:
-    """ Remove a shelf name from the list of known shelves. Args: shelf_name: Name of the shelf to remove """
+    """
+    Remove a shelf name from the list of known shelves.
+
+    Args:
+        shelf_name: Name of the shelf to remove
+    """
     shelves = get_known_shelves()
     if shelf_name in shelves:
         shelves.remove(shelf_name)
