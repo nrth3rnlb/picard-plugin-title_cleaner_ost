@@ -1,4 +1,3 @@
-
 # Shelves Plugin for MusicBrainz Picard
 
 ## Description
@@ -12,10 +11,10 @@ Think of your music library as a physical library with different shelves - one f
 - ✅ **Automatic shelf detection** from file paths during scanning
 - ✅ **Smart detection** prevents artist/album names from being mistaken as shelves
 - ✅ **Manual shelf assignment** via context menu
-- ✅ **Shelf management** in plugin settings (add, remove, scan)
-- ✅ **Undo functionality** to restore previous shelf assignments
-- ✅ **Workflow support** (e.g., auto-staging from "Incoming" to "Standard")
-- ✅ **File naming script integration** for organized storage
+- ✅ **Shelf management** in plugin settings (add, remove, scan directory)
+- ✅ **Workflow automation** - automatically move files between shelves (e.g., "Incoming" → "Standard")
+- ✅ **Script function `$shelf()`** for file naming integration
+- ✅ **Visual script preview** in settings shows your file naming snippet
 
 ## Installation
 
@@ -34,15 +33,17 @@ Think of your music library as a physical library with different shelves - one f
 
 The plugin expects your music library to be organized like this:
 
-    ~/Music/
-    ├── Standard/
-    │   ├── Artist Name/
-    │   │   └── Album Name/
-    │   │       └── track.mp3
-    ├── Incoming/
-    ├── Christmas/
-    ├── Soundtrack/
-    └── ...
+```
+~/Music/
+├── Standard/
+│   ├── Artist Name/
+│   │   └── Album Name/
+│   │       └── track.mp3
+├── Incoming/
+├── Christmas/
+├── Soundtrack/
+└── ...
+```
 
 Each top-level folder under your music directory is considered a "shelf".
 
@@ -73,52 +74,66 @@ The plugin includes intelligent detection to prevent confusion:
 
 ### Manual Assignment
 
-**Right-click** on albums or tracks in Picard and select:
-- **"Set shelf name..."** - Assign or change the shelf
-- **"Undo set shelf name"** - Restore the previous shelf value
+**Right-click** on albums or tracks in Picard and select **"Set shelf name..."** to assign or change the shelf.
 
 ### Plugin Settings
 
 Open **Options → Plugins → Shelves** to:
+
+#### Shelf Management
 - View all known shelves
-- Add new shelves manually
-- Remove shelves from the list
+- **Add Shelf** - Manually add a new shelf
+- **Remove Shelf** - Remove a shelf from the list
 - **Scan Music Directory** - Automatically detect all shelves from your music folder
+
+#### Workflow Configuration
+Enable automatic shelf transitions when saving files:
+
+- **Enable Workflow** - Turn workflow automation on/off
+- **Stage 1** - Source shelf (e.g., "Incoming")
+- **Stage 2** - Destination shelf (e.g., "Standard")
+
+When enabled, files from Stage 1 are automatically moved to Stage 2 when you save them.
+
+#### Script Preview
+The settings show a ready-to-use file naming script that you can copy to **Options → File Naming**.
 
 ## File Naming Script
 
-To organize files by shelf when saving, use this file naming script in **Options → File Naming**:
+The plugin provides the `$shelf()` script function. Use this in **Options → File Naming**:
 
-    $set(_basefolder,$if(%shelf%,%shelf%))
+```
+$set(_shelffolder,$shelf())
+$set(_shelffolder,$if($not($eq(%_shelffolder%,)),%_shelffolder%/))
 
-    $noop(*** Workflow ***)
-    $noop(*** Stage Incoming ⇢ Standard ***)
-    $set(_basefolder,$if($eq(%_basefolder%,"Incoming"),"Standard", %_basefolder%))
+%_shelffolder%
+$if2(%albumartist%,%artist%)/%album%/%title%
+```
 
-    $noop(*** add path separator if necessary ***)
-    $set(_basefolder,$if($not($eq(%_basefolder%,)),%_basefolder%/))
+The `$shelf()` function:
+- Returns the shelf name from the file's metadata
+- Automatically applies workflow transitions if enabled (e.g., "Incoming" → "Standard")
+- Returns empty string if no shelf is set
 
-    %_basefolder%
-    $if2(%albumartist%,%artist%)/
-    $if(%albumartist%,%album%/,)
-    $if($gt(%totaldiscs%,1),%discnumber%-,)
-    $if($and(%albumartist%,%tracknumber%),$num(%tracknumber%,2) ,)
-    $if(%_multiartist%,%artist% - ,)
-    %title%
+**Tip:** Copy the script snippet directly from the plugin settings - it's shown in the "Script Preview" section!
 
-### Workflow Examples
+## Workflow Examples
 
-#### Example 1: Incoming → Standard
+### Example 1: Incoming → Standard Workflow
 
-This script implements an "Incoming → Standard" workflow:
+Configure in plugin settings:
+- ✅ Enable Workflow
+- Stage 1: "Incoming"
+- Stage 2: "Standard"
 
+Then:
 1. **Scan** music files from `~/Music/Incoming/Artist/Album/`
 2. Plugin sets `shelf` tag to "Incoming"
 3. Do your tagging/editing in Picard
 4. **Save** the files
-5. Files are automatically moved to `~/Music/Standard/Artist/Album/`
+5. Files are automatically moved to `~/Music/Standard/Artist/Album/` (because workflow transforms "Incoming" → "Standard")
 
-#### Example 2: Manual Shelf Change
+### Example 2: Manual Shelf Assignment
 
 If you want to keep files in a specific shelf (e.g., "Christmas"):
 
@@ -127,7 +142,7 @@ If you want to keep files in a specific shelf (e.g., "Christmas"):
 3. **Save** the files
 4. Files are moved to `~/Music/Christmas/Artist/Album/`
 
-#### Example 3: Moving Between Shelves Outside Picard
+### Example 3: Moving Between Shelves Outside Picard
 
 If you manually move files outside of Picard:
 
@@ -136,7 +151,7 @@ If you manually move files outside of Picard:
 3. Plugin automatically detects shelf as "Soundtrack"
 4. When you **Save**, files remain in `~/Music/Soundtrack/Artist/Album/`
 
-#### Example 4: Accidentally Misplaced Files
+### Example 4: Accidentally Misplaced Files
 
 If you accidentally place files directly under Music:
 
@@ -148,7 +163,6 @@ If you accidentally place files directly under Music:
 ## Tag Information
 
 - **Tag name:** `shelf`
-- **Backup tag:** `shelfbackup` (used for undo, not saved to files)
 - **Default shelves:** Standard, Incoming
 
 ## Troubleshooting
@@ -169,6 +183,31 @@ This is intentional! The plugin detected that your folder name looks like an art
 
 You can also check Picard's log (Help → View Error/Debug Log) for detailed information about shelf detection.
 
+### The workflow isn't working
+
+Make sure:
+- ✅ Workflow is **enabled** in plugin settings
+- ✅ Your file naming script uses `$shelf()` (not `%shelf%` directly)
+- ✅ Stage 1 and Stage 2 are set to different shelves
+
+## Development
+
+The plugin has a modular structure:
+
+```
+shelves/
+├── __init__.py           # Plugin registration and setup
+├── constants.py          # Constants and defaults
+├── validators.py         # Shelf name validation
+├── manager.py            # ShelfManager class
+├── utils.py              # Utility functions
+├── processors.py         # File and metadata processors
+├── actions.py            # Context menu actions
+├── options.py            # Options page
+├── script_functions.py   # $shelf() function
+└── ui_shelves_config.py  # Generated UI file
+```
+
 ## Requirements
 
 - MusicBrainz Picard 2.0 or higher
@@ -184,4 +223,4 @@ nrth3rnlb
 
 ## Version
 
-1.0.0
+1.1.0

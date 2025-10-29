@@ -108,10 +108,6 @@ class SetShelfAction(BaseAction):
             shelf_name: Shelf name to set
         """
         if hasattr(obj, "metadata"):
-            old_value = obj.metadata.get(ShelfConstants.TAG_KEY, "")
-            if old_value:
-                obj.metadata[ShelfConstants.BACKUP_TAG_KEY] = old_value
-
             obj.metadata[ShelfConstants.TAG_KEY] = shelf_name
             log.debug(
                 "%s: Set shelf '%s' on %s",
@@ -122,7 +118,4 @@ class SetShelfAction(BaseAction):
 
         if hasattr(obj, "iterfiles"):
             for file in obj.iterfiles():
-                old_value = file.metadata.get(ShelfConstants.TAG_KEY, "")
-                if old_value:
-                    file.metadata[ShelfConstants.BACKUP_TAG_KEY] = old_value
                 file.metadata[ShelfConstants.TAG_KEY] = shelf_name
