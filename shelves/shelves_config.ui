@@ -25,6 +25,16 @@
     </widget>
    </item>
    <item>
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>The plugin will attempt to automatically determine the shelf of an album as soon as Picard retrieves the album information from MusicBrainz. You can change the shelf at any time using the context menu for an album.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="shelves_group">
      <property name="title">
       <string>Known Shelves</string>
@@ -104,12 +114,19 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>When the Workflow is enabled, the destination shelf for an album is determined according to the transition configuration. If you specify a different shelf in the context menu of an album, that shelf will be used and the workflow will be ignored.</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="workflow_enabled">
         <property name="text">
          <string>Use workflow</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -119,7 +136,7 @@
          <bool>true</bool>
         </property>
         <property name="title">
-         <string>Transition</string>
+         <string>Configuration of the transition</string>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
@@ -131,7 +148,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>from</string>
+            <string>from shelf </string>
            </property>
           </widget>
          </item>
@@ -154,7 +171,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>to</string>
+            <string>to shelf</string>
            </property>
           </widget>
          </item>
@@ -187,35 +204,9 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QLabel" name="tag_info_label">
-        <property name="text">
-         <string>&lt;b&gt;Tag used:&lt;/b&gt; shelf</string>
-        </property>
-        <property name="textFormat">
-         <enum>Qt::RichText</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="usage_info_label">
-        <property name="text">
-         <string>&lt;b&gt;Usage:&lt;/b&gt; Right-click on albums or tracks to set/change the shelf name. The plugin automatically detects shelves from file paths during scanning.</string>
-        </property>
-        <property name="textFormat">
-         <enum>Qt::RichText</enum>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QLabel" name="script_info_label">
         <property name="text">
-         <string>&lt;b&gt;File naming script example:&lt;/b&gt;</string>
-        </property>
-        <property name="textFormat">
-         <enum>Qt::RichText</enum>
+         <string>Use the following code in your file naming script to use the shelves.</string>
         </property>
        </widget>
       </item>
@@ -234,11 +225,7 @@
          <bool>true</bool>
         </property>
         <property name="plainText">
-         <string>$set(_basefolder,$if(%shelf%,%shelf%))
-$set(_basefolder,$if($eq(%_basefolder%,Incoming),Standard,%_basefolder%))
-$set(_basefolder,$if($not($eq(%_basefolder%,)),%_basefolder%/))
-
-%_basefolder%$if2(%albumartist%,%artist%)/%album%/%title%</string>
+         <string/>
         </property>
        </widget>
       </item>
