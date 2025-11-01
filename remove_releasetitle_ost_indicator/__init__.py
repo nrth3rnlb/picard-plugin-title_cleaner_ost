@@ -159,7 +159,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         pattern = self.ui.regex_pattern.toPlainText()
         # Try to compile the regex again on save with graceful fallback
         try:
-            re.compile(pattern)
+            re.compile(pattern, flags=re.IGNORECASE)
             config.setting["remove_releasetitle_ost_indicator_regex"] = pattern
             config.setting["remove_releasetitle_ost_indicator_only_soundtrack"] = self.ui.only_soundtrack_checkbox.isChecked()
             config.setting["remove_releasetitle_ost_indicator_whitelist"] = self.ui.whitelist_text.toPlainText()
