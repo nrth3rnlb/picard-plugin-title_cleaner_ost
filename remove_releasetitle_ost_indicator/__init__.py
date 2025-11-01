@@ -5,7 +5,7 @@ Remove Release Title OST Indicator Plugin for MusicBrainz Picard.
 Removes soundtrack-related information from album titles using regex.
 """
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 PLUGIN_NAME = "Remove release title OST indicator"
 PLUGIN_AUTHOR = "nrth3rnlb"
@@ -29,6 +29,7 @@ from .ui_options_remove_releasetitle_ost_indicator import Ui_RemoveReleaseTitleO
 from picard import log
 from picard.metadata import register_album_metadata_processor
 import re
+import unicodedata
 
 class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
     """
@@ -56,6 +57,9 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         # Initialize undo stacks
         self.regex_undo_stack = []
         self.whitelist_undo_stack = []
+        
+        # Compiled regex cache for preview
+        self.compiled_regex = None
 
         # Error label for regex status
         from PyQt5.QtWidgets import QLabel
@@ -82,7 +86,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.ui.whitelist_text.textChanged.connect(self.on_whitelist_changed)
 
     def push_undo_stack(self, stack, value):
-        # Appends value to stack
+        """Appends value to stack, avoiding duplicates."""
         if stack and stack[-1] == value:
             return
         stack.append(value)
@@ -90,11 +94,13 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
             stack.pop(0)
 
     def pop_undo_stack(self, stack, current_value):
-        # Returns the last value, removes it from the stack if present and not equal to the current value
+        """Returns the previous value from the stack."""
         if not stack:
             return current_value
+        # Remove current value from stack if it's the last entry
         if stack and stack[-1] == current_value:
             stack.pop()
+        # Return the previous value if available
         if not stack:
             return current_value
         return stack.pop()
@@ -151,8 +157,15 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
     def save(self):
         """Saves the current regex, whitelist to config, validates regex and saves checkbox."""
         pattern = self.ui.regex_pattern.toPlainText()
-        if self.validate_regex_pattern():
+        # Try to compile the regex again on save with graceful fallback
+        try:
+            re.compile(pattern)
             config.setting["remove_releasetitle_ost_indicator_regex"] = pattern
+            config.setting["remove_releasetitle_ost_indicator_only_soundtrack"] = self.ui.only_soundtrack_checkbox.isChecked()
+            config.setting["remove_releasetitle_ost_indicator_whitelist"] = self.ui.whitelist_text.toPlainText()
+        except re.error as e:
+            log.error(PLUGIN_NAME + ": Failed to save regex pattern: %s", e)
+            # Fall back to not saving invalid regex
             config.setting["remove_releasetitle_ost_indicator_only_soundtrack"] = self.ui.only_soundtrack_checkbox.isChecked()
             config.setting["remove_releasetitle_ost_indicator_whitelist"] = self.ui.whitelist_text.toPlainText()
 
@@ -161,14 +174,16 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.ui.regex_pattern.setPlainText(self.DEFAULT_REGEX)
 
     def validate_regex_pattern(self):
-        """Validates the regex pattern and updates UI accordingly."""
+        """Validates the regex pattern, compiles it for caching, and updates UI accordingly."""
         pattern = self.ui.regex_pattern.toPlainText()
         try:
-            re.compile(pattern)
+            self.compiled_regex = re.compile(pattern, flags=re.IGNORECASE)
             self.ui.regex_pattern.setStyleSheet("")
             self.regex_error_label.setVisible(False)
             return True
         except re.error as e:
+            log.debug(PLUGIN_NAME + ": Regex validation error: %s", e)
+            self.compiled_regex = None
             self.ui.regex_pattern.setStyleSheet("background-color: #ffcccc;")
             self.regex_error_label.setText(f"Regex error: {e}")
             self.regex_error_label.setVisible(True)
@@ -177,25 +192,43 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
     def update_test_output(self):
         """
         Applies the current regex/whitelist/setting to the test input and shows the result.
+        Always shows preview, but indicates when only_soundtrack is enabled.
         """
         album_title = self.ui.test_input.text().strip()
-        regex = self.ui.regex_pattern.toPlainText()
         only_soundtrack = self.ui.only_soundtrack_checkbox.isChecked()
         whitelist = self.ui.whitelist_text.toPlainText()
-        whitelist_titles = [line.strip().lower() for line in whitelist.splitlines() if line.strip()]
+        
+        # Normalize whitelist titles using Unicode NFC normalization
+        whitelist_titles = [
+            unicodedata.normalize('NFC', line.strip()).lower()
+            for line in whitelist.splitlines() if line.strip()
+        ]
+        
+        # Normalize album title for comparison
+        normalized_title = unicodedata.normalize('NFC', album_title).lower()
+        
         # Whitelist check
-        if album_title.lower() in whitelist_titles:
+        if normalized_title in whitelist_titles:
             self.ui.test_output.setText("Whitelisted – will not be changed!")
             return
-        # Assume test input is treated as a soundtrack for preview purposes
-        if not only_soundtrack or True:
+        
+        # Always allow preview but use compiled regex if available
+        if self.compiled_regex:
             try:
-                new_title = re.sub(regex, '', album_title, flags=re.IGNORECASE).strip()
-                self.ui.test_output.setText(new_title)
+                new_title = self.compiled_regex.sub('', album_title)
+                # Normalize whitespace and strip leading/trailing whitespace
+                new_title = ' '.join(new_title.split()).strip()
+                
+                # Add indicator if only_soundtrack is enabled
+                if only_soundtrack:
+                    self.ui.test_output.setText(f"{new_title} (only applies to soundtracks)")
+                else:
+                    self.ui.test_output.setText(new_title)
             except Exception as e:
+                log.debug(PLUGIN_NAME + ": Preview error: %s", e)
                 self.ui.test_output.setText(f"Regex error: {e}")
         else:
-            self.ui.test_output.setText(album_title)
+            self.ui.test_output.setText("Invalid regex pattern")
 
 def remove_releasetitle_ost_indicator(album, metadata, release):
     try:
@@ -213,20 +246,36 @@ def remove_releasetitle_ost_indicator(album, metadata, release):
     except KeyError:
         whitelist = RemoveReleaseTitleOstIndicatorOptionsPage.DEFAULT_WHITELIST
 
-    whitelist_titles = [line.strip().lower() for line in whitelist.splitlines() if line.strip()]
+    # Normalize whitelist titles using Unicode NFC normalization
+    whitelist_titles = [
+        unicodedata.normalize('NFC', line.strip()).lower()
+        for line in whitelist.splitlines() if line.strip()
+    ]
+    
     log.debug(PLUGIN_NAME + ": Using regex pattern %r, only_soundtrack=%r, whitelist=%r", regex, only_soundtrack, whitelist_titles)
+    
     if "album" in metadata:
         album_title = metadata["album"].strip()
-        if album_title.lower() in whitelist_titles:
+        normalized_title = unicodedata.normalize('NFC', album_title).lower()
+        
+        if normalized_title in whitelist_titles:
             log.debug(PLUGIN_NAME + ": Album '%s' is whitelisted, skipping removal", album_title)
             return
+        
         if (
             not only_soundtrack or (
                 "releasetype" in metadata and "soundtrack" in metadata["releasetype"]
             )
         ):
-            new_title = re.sub(regex, '', album_title, flags=re.IGNORECASE).strip()
-            metadata["album"] = new_title
+            try:
+                compiled_regex = re.compile(regex, flags=re.IGNORECASE)
+                new_title = compiled_regex.sub('', album_title)
+                # Normalize whitespace and strip leading/trailing whitespace
+                new_title = ' '.join(new_title.split()).strip()
+                metadata["album"] = new_title
+                log.debug(PLUGIN_NAME + ": Changed album title from '%s' to '%s'", album_title, new_title)
+            except re.error as e:
+                log.error(PLUGIN_NAME + ": Regex application error: %s", e)
 
 log.debug(PLUGIN_NAME + ": registration" )
 register_options_page(RemoveReleaseTitleOstIndicatorOptionsPage)
