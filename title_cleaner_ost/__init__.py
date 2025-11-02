@@ -1,30 +1,31 @@
 # -*- coding: utf-8 -*-
 
 """
-Remove Release Title OST Indicator Plugin for MusicBrainz Picard.
+Title Cleaner OST Plugin for MusicBrainz Picard.
 Removes soundtrack-related information from album titles using regex.
 """
 
-__version__ = "2.1.1"
+__version__ = "1.1.1"
 
-PLUGIN_NAME = "Remove release title OST indicator"
+PLUGIN_NAME = "Title Cleaner OST"
 PLUGIN_AUTHOR = "nrth3rnlb"
 PLUGIN_DESCRIPTION = """
-The Plugin “Remove Release Title OST Indicator” removes soundtrack-related information (e.g., "OST", "Soundtrack") from album titles.
+The Plugin “Title Cleaner OST” removes soundtrack-related information (e.g., "OST", "Soundtrack") from album titles.
 Supports custom regex patterns, a whitelist, a test field, and multi-step undo via the plugin settings.
 Regular expressions are a powerful tool. They can therefore also cause serious damage.
 Use https://regex101.com/ to test your pattern.
 Use at your own risk.
 """
 PLUGIN_VERSION = __version__
-PLUGIN_API_VERSIONS = ["2.0", "2.1", "2.2", "2.3"]
+PLUGIN_API_VERSIONS = ["2.7", "2.8"]
 PLUGIN_LICENSE = "GPL-2.0"
 PLUGIN_LICENSE_URL = "https://www.gnu.org/licenses/gpl-2.0.html"
 
 from picard.ui.options import register_options_page
-from picard.config import TextOption, BoolOption, config
+from picard import config, log
+from picard.config import BoolOption, TextOption
 from picard.ui.options import OptionsPage
-from .ui_options_remove_releasetitle_ost_indicator import Ui_RemoveReleaseTitleOstIndicatorSettings
+from .ui_title_cleaner_ost_config import Ui_RemoveReleaseTitleOstIndicatorSettings
 
 from picard import log
 from picard.metadata import register_album_metadata_processor
@@ -33,10 +34,11 @@ import unicodedata
 
 class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
     """
-    Options page for the Remove Release Title OST Indicator plugin.
+    Options page for the Title Cleaner OST plugin.
     """
-    NAME = "remove_releasetitle_ost_indicator"
-    TITLE = "Remove Release Title OST Indicator"
+    NAME = "title_cleaner_ost"
+    ui: Ui_RemoveReleaseTitleOstIndicatorSettings
+    TITLE = "Title Cleaner OST"
     PARENT = "plugins"
 
     DEFAULT_REGEX = r'(\s*(?:(?::|-|–|—|\(|\[)\s*)?(\b(?:Original|Album|Movie|Motion|Picture|Soundtrack|Score|OST|Music|Edition|Inspired|by|from|the|TV|Series|Video|Game|Film|Show)\b)+(?:\)|\])?\s*)+$'
@@ -44,9 +46,9 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
     DEFAULT_UNDO_STACK_SIZE = 5
 
     options = [
-        TextOption("setting", "remove_releasetitle_ost_indicator_regex", DEFAULT_REGEX),
-        BoolOption("setting", "remove_releasetitle_ost_indicator_only_soundtrack", True),
-        TextOption("setting", "remove_releasetitle_ost_indicator_whitelist", DEFAULT_WHITELIST),
+        TextOption("setting", "title_cleaner_ost_regex", DEFAULT_REGEX),
+        BoolOption("setting", "title_cleaner_ost_only_soundtrack", True),
+        TextOption("setting", "title_cleaner_ost_whitelist", DEFAULT_WHITELIST),
     ]
 
     def __init__(self, parent=None):
@@ -57,7 +59,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         # Initialize undo stacks
         self.regex_undo_stack = []
         self.whitelist_undo_stack = []
-        
+
         # Compiled regex cache for preview
         self.compiled_regex = None
 
@@ -130,7 +132,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
     def load(self):
         """Loads the current regex, whitelist or default and settings."""
         try:
-            current_regex = config.setting["remove_releasetitle_ost_indicator_regex"]
+            current_regex = config.setting["title_cleaner_ost_regex"]
         except KeyError:
             current_regex = self.DEFAULT_REGEX
         self.ui.regex_pattern.setPlainText(current_regex)
@@ -138,13 +140,13 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.regex_undo_stack = [current_regex]
 
         try:
-            only_soundtrack = config.setting["remove_releasetitle_ost_indicator_only_soundtrack"]
+            only_soundtrack = config.setting["title_cleaner_ost_only_soundtrack"]
         except KeyError:
             only_soundtrack = True
         self.ui.only_soundtrack_checkbox.setChecked(only_soundtrack)
 
         try:
-            whitelist = config.setting["remove_releasetitle_ost_indicator_whitelist"]
+            whitelist = config.setting["title_cleaner_ost_whitelist"]
         except KeyError:
             whitelist = self.DEFAULT_WHITELIST
         self.ui.whitelist_text.setPlainText(whitelist)
@@ -155,14 +157,14 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.ui.test_output.setText("")
 
     def save(self):
-        """Saves the current regex, whitelist to config, validates regex and saves checkbox."""
+        """Saves the current regex, whitelist to config, validates regex, and saves checkbox."""
         pattern = self.ui.regex_pattern.toPlainText()
         # Try to compile the regex again on save with graceful fallback
         try:
             re.compile(pattern, flags=re.IGNORECASE)
-            config.setting["remove_releasetitle_ost_indicator_regex"] = pattern
-            config.setting["remove_releasetitle_ost_indicator_only_soundtrack"] = self.ui.only_soundtrack_checkbox.isChecked()
-            config.setting["remove_releasetitle_ost_indicator_whitelist"] = self.ui.whitelist_text.toPlainText()
+            config.setting["title_cleaner_ost_regex"] = pattern
+            config.setting["title_cleaner_ost_only_soundtrack"] = self.ui.only_soundtrack_checkbox.isChecked()
+            config.setting["title_cleaner_ost_whitelist"] = self.ui.whitelist_text.toPlainText()
         except re.error as e:
             log.error(PLUGIN_NAME + ": Failed to save regex pattern: %s", e)
             # Fall back to not saving invalid regex
@@ -197,28 +199,28 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         album_title = self.ui.test_input.text().strip()
         only_soundtrack = self.ui.only_soundtrack_checkbox.isChecked()
         whitelist = self.ui.whitelist_text.toPlainText()
-        
+
         # Normalize whitelist titles using Unicode NFC normalization
         whitelist_titles = [
             unicodedata.normalize('NFC', line.strip()).lower()
             for line in whitelist.splitlines() if line.strip()
         ]
-        
+
         # Normalize album title for comparison
         normalized_title = unicodedata.normalize('NFC', album_title).lower()
-        
+
         # Whitelist check
         if normalized_title in whitelist_titles:
             self.ui.test_output.setText("Whitelisted – will not be changed!")
             return
-        
+
         # Always allow preview but use compiled regex if available
         if self.compiled_regex:
             try:
                 new_title = self.compiled_regex.sub('', album_title)
                 # Normalize whitespace and strip leading/trailing whitespace
                 new_title = ' '.join(new_title.split()).strip()
-                
+
                 # Add indicator if only_soundtrack is enabled
                 if only_soundtrack:
                     self.ui.test_output.setText(f"{new_title} (only applies to soundtracks)")
@@ -230,19 +232,19 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         else:
             self.ui.test_output.setText("Invalid regex pattern")
 
-def remove_releasetitle_ost_indicator(album, metadata, release):
+def title_cleaner_ost(album, metadata, release):
     try:
-        regex = config.setting["remove_releasetitle_ost_indicator_regex"]
+        regex = config.setting["title_cleaner_ost_regex"]
     except KeyError:
         regex = RemoveReleaseTitleOstIndicatorOptionsPage.DEFAULT_REGEX
 
     try:
-        only_soundtrack = config.setting["remove_releasetitle_ost_indicator_only_soundtrack"]
+        only_soundtrack = config.setting["title_cleaner_ost_only_soundtrack"]
     except KeyError:
         only_soundtrack = True
 
     try:
-        whitelist = config.setting["remove_releasetitle_ost_indicator_whitelist"]
+        whitelist = config.setting["title_cleaner_ost_whitelist"]
     except KeyError:
         whitelist = RemoveReleaseTitleOstIndicatorOptionsPage.DEFAULT_WHITELIST
 
@@ -251,17 +253,17 @@ def remove_releasetitle_ost_indicator(album, metadata, release):
         unicodedata.normalize('NFC', line.strip()).lower()
         for line in whitelist.splitlines() if line.strip()
     ]
-    
+
     log.debug(PLUGIN_NAME + ": Using regex pattern %r, only_soundtrack=%r, whitelist=%r", regex, only_soundtrack, whitelist_titles)
-    
+
     if "album" in metadata:
         album_title = metadata["album"].strip()
         normalized_title = unicodedata.normalize('NFC', album_title).lower()
-        
+
         if normalized_title in whitelist_titles:
             log.debug(PLUGIN_NAME + ": Album '%s' is whitelisted, skipping removal", album_title)
             return
-        
+
         if (
             not only_soundtrack or (
                 "releasetype" in metadata and "soundtrack" in metadata["releasetype"]
@@ -279,4 +281,4 @@ def remove_releasetitle_ost_indicator(album, metadata, release):
 
 log.debug(PLUGIN_NAME + ": registration" )
 register_options_page(RemoveReleaseTitleOstIndicatorOptionsPage)
-register_album_metadata_processor(remove_releasetitle_ost_indicator)
+register_album_metadata_processor(title_cleaner_ost)
