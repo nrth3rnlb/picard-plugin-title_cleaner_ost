@@ -43,7 +43,6 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
 
     DEFAULT_REGEX = r'(\s*(?:(?::|-|–|—|\(|\[)\s*)?(\b(?:Original|Album|Movie|Motion|Picture|Soundtrack|Score|OST|Music|Edition|Inspired|by|from|the|TV|Series|Video|Game|Film|Show)\b)+(?:\)|\])?\s*)+$'
     DEFAULT_WHITELIST = ""
-    DEFAULT_UNDO_STACK_SIZE = 5
 
     options = [
         TextOption("setting", "title_cleaner_ost_regex", DEFAULT_REGEX),
@@ -87,15 +86,15 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.ui.regex_pattern.textChanged.connect(self.on_regex_changed)
         self.ui.whitelist_text.textChanged.connect(self.on_whitelist_changed)
 
-    def push_undo_stack(self, stack, value):
-        """Appends value to stack, avoiding duplicates."""
+    @staticmethod
+    def push_undo_stack(stack, value):
+        """Append value to stack, avoiding immediate duplicates. No size limit."""
         if stack and stack[-1] == value:
             return
         stack.append(value)
-        if len(stack) > self.DEFAULT_UNDO_STACK_SIZE:
-            stack.pop(0)
 
-    def pop_undo_stack(self, stack, current_value):
+    @staticmethod
+    def pop_undo_stack(stack, current_value):
         """Returns the previous value from the stack."""
         if not stack:
             return current_value
