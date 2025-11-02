@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>688</width>
+    <width>670</width>
     <height>794</height>
    </rect>
   </property>
@@ -36,7 +36,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>668</width>
+        <width>650</width>
         <height>774</height>
        </rect>
       </property>
@@ -70,7 +70,7 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <layout class="QVBoxLayout" name="verticalLayout_5">
              <item>
               <widget class="QCheckBox" name="only_soundtrack_checkbox">
                <property name="sizePolicy">
@@ -83,26 +83,10 @@
                 <string>If enabled, the pattern is only applied to albums marked as soundtracks (field 'releasetype'). If disabled, the pattern will be applied to all albums.</string>
                </property>
                <property name="text">
-                <string>Only apply to soundtracks (releasetype)</string>
+                <string>Consider only soundtracks (secondary types)</string>
                </property>
                <property name="checked">
                 <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="regex_hint">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="toolTip">
-                <string>External link for testing your regular expression pattern.</string>
-               </property>
-               <property name="text">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use &lt;a href=&quot;https://regex101.com/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#1f9b5d;&quot;&gt;regex101.com&lt;/span&gt;&lt;/a&gt; to test your pattern.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
               </widget>
              </item>
@@ -126,16 +110,6 @@
                </property>
                <property name="text">
                 <string>Reset to Default</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="undo_regex_button">
-               <property name="toolTip">
-                <string>Undo last regex change (up to 5 steps).</string>
-               </property>
-               <property name="text">
-                <string>Undo</string>
                </property>
               </widget>
              </item>
@@ -167,20 +141,10 @@ Another Album Name</string>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QPushButton" name="undo_whitelist_button">
-            <property name="toolTip">
-             <string>Undo last whitelist change (up to 5 steps).</string>
-            </property>
-            <property name="text">
-             <string>Undo</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
-       <item>
+       <item alignment="Qt::AlignTop">
         <widget class="QGroupBox" name="groupBox_2">
          <property name="title">
           <string>Test your settings</string>
@@ -222,6 +186,38 @@ Another Album Name</string>
             <property name="text">
              <string/>
             </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widget_3" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QLabel" name="label_2">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>applies to:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="only_applies_to">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
          </layout>

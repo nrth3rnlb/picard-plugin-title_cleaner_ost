@@ -3,7 +3,7 @@
 **Title Cleaner OST** is a plugin for [MusicBrainz Picard](https://picard.musicbrainz.org/) that removes soundtrack-related information from album titles.
 
 | Original                                                              | Edited                            |
-| --------------------------------------------------------------------- | --------------------------------- |
+|-----------------------------------------------------------------------|-----------------------------------|
 | The Hobbit: An Unexpected Journey: Original Motion Picture Soundtrack | The Hobbit: An Unexpected Journey |
 | Snapshot: OST                                                         | Snapshot                          |
 | Turbo: Music From the Motion Picture                                  | Turbo                             |
@@ -11,11 +11,10 @@
 
 ## Features
 - Optionally restrict to soundtracks (releasetype). Enabled by default.
-- Removes common soundtrack patterns (e.g., "Soundtrack", "OST", "Score"), even without a separator at the end of the title.
+- Removes common soundtrack patterns (e.g. "Soundtrack", "OST", "Score"), even without a separator at the end of the title.
 - Supports **custom regex patterns** via the plugin settings.
 - **Whitelist support:** Album titles in the whitelist will never be changed (case-insensitive, one title per line).
-- **Regex validation:** Regex is checked live in the settings dialog for syntax validity.
-- **Multi-step Undo:** Regex and Whitelist fields store the last 5 changes and can be undone stepwise.
+- **Regex validation:** Regex is checked live in the settings dialogue for syntax validity.
 - **Test field:** Live preview to see how a title would be changed by current settings.
 
 ## Usage

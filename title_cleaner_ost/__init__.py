@@ -11,7 +11,7 @@ PLUGIN_NAME = "Title Cleaner OST"
 PLUGIN_AUTHOR = "nrth3rnlb"
 PLUGIN_DESCRIPTION = """
 The Plugin “Title Cleaner OST” removes soundtrack-related information (e.g., "OST", "Soundtrack") from album titles.
-Supports custom regex patterns, a whitelist, a test field, and multi-step undo via the plugin settings.
+Supports custom regex patterns, a whitelist and a test field via the plugin settings.
 Regular expressions are a powerful tool. They can therefore also cause serious damage.
 Use https://regex101.com/ to test your pattern.
 Use at your own risk.
@@ -27,7 +27,6 @@ from picard.config import BoolOption, TextOption
 from picard.ui.options import OptionsPage
 from .ui_title_cleaner_ost_config import Ui_RemoveReleaseTitleOstIndicatorSettings
 
-from picard import log
 from picard.metadata import register_album_metadata_processor
 import re
 import unicodedata
@@ -44,6 +43,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
     DEFAULT_REGEX = r'(\s*(?:(?::|-|–|—|\(|\[)\s*)?(\b(?:Original|Album|Movie|Motion|Picture|Soundtrack|Score|OST|Music|Edition|Inspired|by|from|the|TV|Series|Video|Game|Film|Show)\b)+(?:\)|\])?\s*)+$'
     DEFAULT_WHITELIST = ""
 
+
     options = [
         TextOption("setting", "title_cleaner_ost_regex", DEFAULT_REGEX),
         BoolOption("setting", "title_cleaner_ost_only_soundtrack", True),
@@ -55,10 +55,6 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.ui = Ui_RemoveReleaseTitleOstIndicatorSettings()
         self.ui.setupUi(self)
 
-        # Initialize undo stacks
-        self.regex_undo_stack = []
-        self.whitelist_undo_stack = []
-
         # Compiled regex cache for preview
         self.compiled_regex = None
 
@@ -69,64 +65,21 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.regex_error_label.setVisible(False)
         self.ui.vboxlayout1.addWidget(self.regex_error_label)
 
-        # Undo buttons
-        self.ui.undo_regex_button.clicked.connect(self.undo_regex)
-        self.ui.undo_whitelist_button.clicked.connect(self.undo_whitelist)
-
         # Test field logic
         self.ui.test_input.textChanged.connect(self.update_test_output)
         self.ui.regex_pattern.textChanged.connect(self.update_test_output)
         self.ui.whitelist_text.textChanged.connect(self.update_test_output)
-        self.ui.only_soundtrack_checkbox.stateChanged.connect(self.update_test_output)
+        self.ui.only_soundtrack_checkbox.stateChanged.connect(self.update_only_applies_to)
 
         # Reset button for Regex
         self.ui.reset_button.clicked.connect(self.reset_to_default)
 
-        # Regex validation with every change + undo stack
+        # Regex validation with every change
         self.ui.regex_pattern.textChanged.connect(self.on_regex_changed)
-        self.ui.whitelist_text.textChanged.connect(self.on_whitelist_changed)
-
-    @staticmethod
-    def push_undo_stack(stack, value):
-        """Append value to stack, avoiding immediate duplicates. No size limit."""
-        if stack and stack[-1] == value:
-            return
-        stack.append(value)
-
-    @staticmethod
-    def pop_undo_stack(stack, current_value):
-        """Returns the previous value from the stack."""
-        if not stack:
-            return current_value
-        # Remove current value from stack if it's the last entry
-        if stack and stack[-1] == current_value:
-            stack.pop()
-        # Return the previous value if available
-        if not stack:
-            return current_value
-        return stack.pop()
 
     def on_regex_changed(self):
-        self.push_undo_stack(self.regex_undo_stack, self.ui.regex_pattern.toPlainText())
         self.validate_regex_pattern()
 
-    def on_whitelist_changed(self):
-        self.push_undo_stack(self.whitelist_undo_stack, self.ui.whitelist_text.toPlainText())
-
-    def undo_regex(self):
-        prev = self.pop_undo_stack(self.regex_undo_stack, self.ui.regex_pattern.toPlainText())
-        self.ui.regex_pattern.blockSignals(True)
-        self.ui.regex_pattern.setPlainText(prev)
-        self.ui.regex_pattern.blockSignals(False)
-        self.validate_regex_pattern()
-        self.update_test_output()
-
-    def undo_whitelist(self):
-        prev = self.pop_undo_stack(self.whitelist_undo_stack, self.ui.whitelist_text.toPlainText())
-        self.ui.whitelist_text.blockSignals(True)
-        self.ui.whitelist_text.setPlainText(prev)
-        self.ui.whitelist_text.blockSignals(False)
-        self.update_test_output()
 
     def load(self):
         """Loads the current regex, whitelist or default and settings."""
@@ -136,7 +89,6 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
             current_regex = self.DEFAULT_REGEX
         self.ui.regex_pattern.setPlainText(current_regex)
         self.validate_regex_pattern()
-        self.regex_undo_stack = [current_regex]
 
         try:
             only_soundtrack = config.setting["title_cleaner_ost_only_soundtrack"]
@@ -144,12 +96,17 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
             only_soundtrack = True
         self.ui.only_soundtrack_checkbox.setChecked(only_soundtrack)
 
+        if self.ui.only_soundtrack_checkbox.isChecked():
+            self.ui.only_applies_to.setText("soundtracks")
+        else:
+            self.ui.only_applies_to.clear()
+
         try:
             whitelist = config.setting["title_cleaner_ost_whitelist"]
         except KeyError:
             whitelist = self.DEFAULT_WHITELIST
         self.ui.whitelist_text.setPlainText(whitelist)
-        self.whitelist_undo_stack = [whitelist]
+
 
         # Testfeld leeren
         self.ui.test_input.setText("")
@@ -190,22 +147,28 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
             self.regex_error_label.setVisible(True)
             return False
 
+    def update_only_applies_to(self):
+        only_soundtrack = self.ui.only_soundtrack_checkbox.isChecked()
+        if only_soundtrack:
+            self.ui.only_applies_to.setText("soundtracks")
+        else:
+            self.ui.only_applies_to.clear()
+
     def update_test_output(self):
         """
         Applies the current regex/whitelist/setting to the test input and shows the result.
-        Always shows preview, but indicates when only_soundtrack is enabled.
+        Always shows a preview but indicates when only_soundtrack is enabled.
         """
         album_title = self.ui.test_input.text().strip()
-        only_soundtrack = self.ui.only_soundtrack_checkbox.isChecked()
         whitelist = self.ui.whitelist_text.toPlainText()
 
-        # Normalize whitelist titles using Unicode NFC normalization
+        # Normalise whitelist titles using Unicode NFC normalization
         whitelist_titles = [
             unicodedata.normalize('NFC', line.strip()).lower()
             for line in whitelist.splitlines() if line.strip()
         ]
 
-        # Normalize album title for comparison
+        # Normalise album title for comparison
         normalized_title = unicodedata.normalize('NFC', album_title).lower()
 
         # Whitelist check
@@ -217,14 +180,9 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         if self.compiled_regex:
             try:
                 new_title = self.compiled_regex.sub('', album_title)
-                # Normalize whitespace and strip leading/trailing whitespace
+                # Normalise whitespace and strip leading/trailing whitespace
                 new_title = ' '.join(new_title.split()).strip()
-
-                # Add indicator if only_soundtrack is enabled
-                if only_soundtrack:
-                    self.ui.test_output.setText(f"{new_title} (only applies to soundtracks)")
-                else:
-                    self.ui.test_output.setText(new_title)
+                self.ui.test_output.setText(new_title)
             except Exception as e:
                 log.debug(PLUGIN_NAME + ": Preview error: %s", e)
                 self.ui.test_output.setText(f"Regex error: {e}")
@@ -247,7 +205,7 @@ def title_cleaner_ost(album, metadata, release):
     except KeyError:
         whitelist = RemoveReleaseTitleOstIndicatorOptionsPage.DEFAULT_WHITELIST
 
-    # Normalize whitelist titles using Unicode NFC normalization
+    # Normalise whitelist titles using Unicode NFC normalization
     whitelist_titles = [
         unicodedata.normalize('NFC', line.strip()).lower()
         for line in whitelist.splitlines() if line.strip()
@@ -271,7 +229,7 @@ def title_cleaner_ost(album, metadata, release):
             try:
                 compiled_regex = re.compile(regex, flags=re.IGNORECASE)
                 new_title = compiled_regex.sub('', album_title)
-                # Normalize whitespace and strip leading/trailing whitespace
+                # Normalise whitespace and strip leading/trailing whitespace
                 new_title = ' '.join(new_title.split()).strip()
                 metadata["album"] = new_title
                 log.debug(PLUGIN_NAME + ": Changed album title from '%s' to '%s'", album_title, new_title)
