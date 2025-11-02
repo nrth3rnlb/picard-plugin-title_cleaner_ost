@@ -1,13 +1,13 @@
 [project]
-name = "picard-plugin-remove_releasetitle_ost_indicator"
+name = "picard-plugin-title-cleaner-ost"
 version = "1.0.0"
 readme = "README.md"
 readme-content-type = "text/markdown"
 readme-encoding = "utf-8"
-description = "Remove Release Title OST Indicator is a plugin for MusicBrainz Picard that removes soundtrack-related information from album titles."
+description = "Title Cleaner OST is a plugin for MusicBrainz Picard that removes soundtrack-related information from album titles."
 keywords = ["musicbrainz", "picard", "plugin", "music", "organization"]
-homepage = "https://github.com/nrth3rnlb/picard-plugin-remove_releasetitle_ost_indicator/"
-repository = "https://github.com/nrth3rnlb/picard-plugin-remove_releasetitle_ost_indicator/"
+homepage = "https://github.com/nrth3rnlb/picard-plugin-title-cleaner-ost/"
+repository = "https://github.com/nrth3rnlb/picard-plugin-title-cleaner-ost/"
 license = {file = "LICENSE"}
 authors = [
     {name = "nrth3rnlb"}
@@ -34,11 +34,11 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["remove_releasetitle_ost_indicator*"]
+include = ["title-cleaner-ost*"]
 exclude = ["tests*"]
 
 [tool.coverage.run]
-source = ["remove_releasetitle_ost_indicator"]
+source = ["title-cleaner-ost"]
 omit = [
     "*/tests/*",
     "*/__pycache__/*",
@@ -85,7 +85,7 @@ ignore-patterns = ["ui_.*\\.py", ".*_ui\\.py"]
 [tool.semantic_release]
 tag_format = "v{version}"
 version_toml = ["pyproject.toml:project.version:nf"]
-version_variables = ["remove_releasetitle_ost_indicator/__init__.py:__version__:nf"]
+version_variables = ["title-cleaner-ost/__init__.py:__version__:nf"]
 
 [tool.semantic_release.changelog.default_templates]
 changelog_file = "CHANGELOG.md"
