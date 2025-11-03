@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.2 (2025-11-03)
+
+### Bug Fixes
+
+- Corrected the names of two configuration parameters and eplace string literals with constants
+  ([`58c9744`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/58c9744352f756626b9e6e5a5c3398837f6db038))
+
+
 ## v1.2.1 (2025-11-03)
 
 ### Bug Fixes
