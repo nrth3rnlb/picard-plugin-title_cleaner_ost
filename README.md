@@ -10,7 +10,7 @@
 | Into the Breach Soundtrack                                            | Into the Breach                   |
 
 ## Features
-- Optionally restrict to soundtracks (releasetype). Enabled by default.
+- Optionally restrict to soundtracks (a secondary releasetype). Enabled by default.
 - Removes common soundtrack patterns (e.g. "Soundtrack", "OST", "Score"), even without a separator at the end of the title.
 - Supports **custom regex patterns** via the plugin settings.
 - **Whitelist support:** Album titles in the whitelist will never be changed (case-insensitive, one title per line).
@@ -22,5 +22,4 @@
 2. Adjust the regex pattern if needed (default works for most cases).
 3. Decide whether the removal should only apply to releases marked as soundtracks (`releasetype`). This option is enabled by default. If you want to remove soundtrack patterns from all releases, uncheck the box "Only apply to soundtracks (releasetype)".
 4. If you have album titles that should never be changed, add them to the whitelist (one per line, case-insensitive).
-5. Use the test field to validate results. Changes in the Regex and Whitelist can be undone up to 5 previous steps using the Undo buttons next to each field.
-6. Click **OK** to save changes.
+5. Use the test field to validate results.
