@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.1 (2025-11-03)
+
+### Bug Fixes
+
+- Clarify README feature description for soundtrack release type restriction
+  ([`a3dbce7`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/a3dbce778a6abf03f167ef3a522d8793664e74f3))
+
+
 ## v1.2.0 (2025-11-02)
 
 ### Bug Fixes
