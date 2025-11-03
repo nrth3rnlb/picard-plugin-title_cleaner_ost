@@ -1,6 +1,6 @@
 [project]
 name = "picard-plugin-title_cleaner_ost"
-version = "1.2.2"
+version = "1.2.1"
 readme = "README.md"
 description = "Title Cleaner OST is a plugin for MusicBrainz Picard that removes soundtrack-related information from album titles."
 keywords = ["musicbrainz", "picard", "plugin", "music", "organization"]
