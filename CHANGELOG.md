@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.3.1 (2025-11-12)
+
+### Bug Fixes
+
+- Remove unused imports and simplify checkbox state handling
+  ([`a624bac`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/a624bacbddc5febc3ccc595c834d06a67f502b0a))
+
+
 ## v1.3.0 (2025-11-12)
 
 ### Bug Fixes
