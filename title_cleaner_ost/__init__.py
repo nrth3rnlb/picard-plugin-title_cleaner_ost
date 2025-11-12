@@ -323,7 +323,12 @@ def title_cleaner_ost(album, metadata, release):
             log.debug(PLUGIN_NAME + ": Album '%s' is whitelisted, skipping removal", album_title)
             return
 
-        if only_soundtrack and "releasetype" in metadata and "soundtrack" in metadata["releasetype"]:
+        # Determine if we should process this album
+        is_soundtrack = "releasetype" in metadata and "soundtrack" in metadata["releasetype"]
+        # Process if: all albums allowed OR it is a soundtrack
+        should_process = is_soundtrack or not only_soundtrack
+
+        if should_process:
             try:
                 compiled_regex = re.compile(regex, flags=re.IGNORECASE)
                 new_title = compiled_regex.sub('', album_title)
