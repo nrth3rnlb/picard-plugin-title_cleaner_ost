@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.3.0 (2025-11-12)
+
+### Bug Fixes
+
+- Album process logic
+  ([`16d3363`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/16d3363938f9a5bdf80901884e1e7d37581c6887))
+
+### Features
+
+- Enhance configuration options and UI
+  ([`acdd0bd`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/acdd0bd11c7fcd026fa4a329db664b3dd6acf9e9))
+
+
 ## v1.2.2 (2025-11-03)
 
 ### Bug Fixes
