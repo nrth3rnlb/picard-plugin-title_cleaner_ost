@@ -5,7 +5,7 @@ Title Cleaner OST Plugin for MusicBrainz Picard.
 Removes soundtrack-related information from album titles using regex.
 """
 
-__version__ = "1.3.1"
+__version__ = "1.3.2"
 
 from PyQt5.QtWidgets import QCheckBox
 

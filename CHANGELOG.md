@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v1.3.2 (2025-11-15)
+
+### Bug Fixes
+
+- **logging**: Add debug log for title_cleaner_ost function
+  ([`e422cd9`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/e422cd92d4c1f2590bc57a9785bd90b6581627be))
+
+- **logic**: Changes to the title will also be made if no checkbox is selected
+  ([`4347de0`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/4347de08a1b0a972256ee7c61364641192beb55c))
+
+
 ## v1.3.1 (2025-11-12)
 
 ### Bug Fixes
