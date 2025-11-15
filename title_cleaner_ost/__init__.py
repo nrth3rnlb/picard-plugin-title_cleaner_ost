@@ -284,6 +284,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
             self.ui.test_output.setText("Invalid regex pattern")
 
 def title_cleaner_ost(album, metadata, release):
+    log.debug(PLUGIN_NAME + ": title_cleaner_ost called for album '%s'", metadata.get("album", "<no album>"))
     try:
         regex = config.setting[OST_REGEX]  # type: ignore[index]
     except KeyError:
