@@ -15,11 +15,11 @@ PLUGIN_DESCRIPTION = """
 The Plugin “Title Cleaner OST” removes soundtrack-related information (e.g., "OST", "Soundtrack") from album titles.
 Supports custom regex patterns, a whitelist and a test field via the plugin settings.
 Regular expressions are a powerful tool. They can therefore also cause serious damage.
-Use https://regex101.com/ to test your pattern.
+Use [regex101](https://regex101.com/) or [regex101](https://regex101.com/r/3XS83D/) to test your pattern.
 Use at your own risk.
 """
 PLUGIN_VERSION = "1.3.3"
-PLUGIN_API_VERSIONS = ["2.7", "2.8"]
+PLUGIN_API_VERSIONS = ["2.0"]
 PLUGIN_LICENSE = "GPL-2.0"
 PLUGIN_LICENSE_URL = "https://www.gnu.org/licenses/gpl-2.0.html"
 

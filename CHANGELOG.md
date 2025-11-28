@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.3.3 (2025-11-15)
+
+### Bug Fixes
+
+- **init**: Remove __version__ and set PLUGIN_VERSION directly
+  ([
+  `905a4d5`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/905a4d5912be00cf41e77e9ffdd4892ea85025b6))
+
 ## v1.3.2 (2025-11-15)
 
 ### Bug Fixes
