@@ -25,13 +25,14 @@ PLUGIN_LICENSE_URL = "https://www.gnu.org/licenses/gpl-2.0.html"
 
 import re
 import unicodedata
+import threading
 
 from typing import List, Dict, Any
 
 from PyQt5.QtCore import Qt
 
 from picard import config, log
-from picard.config import BoolOption, TextOption, ListOption, IntOption
+from picard.config import BoolOption, TextOption, ListOption
 from picard.metadata import register_album_metadata_processor
 from picard.ui.options import OptionsPage
 from picard.ui.options import register_options_page
@@ -41,13 +42,13 @@ from picard.ui.options import OptionsCheckError
 # ONLY_SOUNDTRACK = "title_cleaner_ost_only_soundtrack"
 OST_WHITELIST = "title_cleaner_ost_whitelist"
 OST_REGEX = "title_cleaner_ost_regex"
+OST_REGEX_2 = "title_cleaner_ost_regex_2"
+ENABLE_REGEX_1 = "title_cleaner_ost_enable_regex_1"
+ENABLE_REGEX_2 = "title_cleaner_ost_enable_regex_2"
 LIVE_UPDATES = "title_cleaner_ost_live_updates"
 APPLY_OPTIONS = "title_cleaner_ost_apply_options"
 SCHEMA_VERSION = "title_cleaner_ost_schema_version"
 
-def get_setting_with_default(key, default) -> Any:
-    """Helper to get a setting with a default fallback."""
-    return config.setting[key] if key in config.setting else default
 
 class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
     """
@@ -56,7 +57,6 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
     NAME = "title_cleaner_ost"
     TITLE = "Title Cleaner OST"
     PARENT = "plugins"
-
 
     REGEX_DESCRIPTION_MD = """
 **Regex explanation (end‑based removal; re.IGNORECASE):**
@@ -72,16 +72,15 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
 """.lstrip("\n")
 
     DEFAULT_REGEX = r'(\s*(?:(?::|：|∶|-|–|—|\(|\[)\s*)?(\b(?:Original|Album|Movie|Motion|Picture|Soundtrack|Score|OST|Music|Edition|Inspired|by|from|the|TV|Series|Video|Game|Film|Show)\b)+(?:\)|\])?\s*)+$'
+    DEFAULT_REGEX_2 = r''
     DEFAULT_WHITELIST = ""
-
-    APPLY_OPTIONS_SCHEMA_VERSION = 1
 
     DEFAULT_APPLY_OPTIONS: List[Dict[str, Any]] = [
         {
             "releasetype": "all",
             "text": "All Release Types",
             "tooltip": "The pattern is applied to all albums.",
-            "enabled": False,    # use a clear name for the actual enabled state
+            "enabled": False,  # use a clear name for the actual enabled state
             "condition": None
         },
         {
@@ -93,20 +92,23 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         }
     ]
 
-
     options = [
         TextOption("setting", OST_REGEX, DEFAULT_REGEX),
+        TextOption("setting", OST_REGEX_2, DEFAULT_REGEX_2),
+        BoolOption("setting", ENABLE_REGEX_1, True),
+        BoolOption("setting", ENABLE_REGEX_2, False),
         TextOption("setting", OST_WHITELIST, DEFAULT_WHITELIST),
         BoolOption("setting", LIVE_UPDATES, False),
         ListOption("setting", APPLY_OPTIONS, DEFAULT_APPLY_OPTIONS),
-        IntOption("setting", SCHEMA_VERSION, APPLY_OPTIONS_SCHEMA_VERSION),
-
     ]
 
     def __init__(self, parent=None):
         super().__init__(parent)
         ui_file = os.path.join(os.path.dirname(__file__), 'title_cleaner_ost_config.ui')
         uic.loadUi(ui_file, self)
+
+        self.regex_pattern_1.setMaximumHeight(100)
+        self.regex_pattern_2.setMaximumHeight(100)
 
         markdown_fmt = getattr(Qt, "MarkdownText", Qt.PlainText)
         self.regex_help.setTextFormat(markdown_fmt)
@@ -117,6 +119,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
 
         # Compiled regex cache for preview
         self.compiled_regex = None
+        self.compiled_regex_2 = None
 
         self.regex_help.setVisible(False)
         self.regex_help.setText(self.REGEX_DESCRIPTION_MD)
@@ -124,6 +127,9 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         # Test field logic
         self.test_input.textChanged.connect(self.update_test_output)
         self.regex_pattern_1.textChanged.connect(self.update_test_output)
+        self.regex_pattern_2.textChanged.connect(self.update_test_output)
+        self.enable_regex_1.stateChanged.connect(self.update_test_output)
+        self.enable_regex_2.stateChanged.connect(self.update_test_output)
         self.whitelist_text.textChanged.connect(self.update_test_output)
         self.enable_live_updates.stateChanged.connect(self.update_test_output)
         self.enable_live_updates.stateChanged.connect(self.update_run_button_state)
@@ -133,6 +139,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
 
         # Regex validation with every change
         self.regex_pattern_1.textChanged.connect(self.on_regex_changed)
+        self.regex_pattern_2.textChanged.connect(self.on_regex_changed)
 
         # Run Update button
         self.run_update.clicked.connect(self.force_update_test_output)
@@ -141,7 +148,6 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.chk_all_release_types.stateChanged.connect(self.update_release_type_chks)
 
         self.update_test_output_forced = False
-
 
     def update_release_type_chks(self):
         """Updates the state of release type checkboxes."""
@@ -156,7 +162,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.update_test_output()
 
     def on_regex_changed(self):
-        self.validate_regex_pattern_1()
+        self.validate_regex_patterns()
 
     def load(self):
         """Loads the regex, whitelist, and checkbox state from config into the UI."""
@@ -170,7 +176,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
                     w.setParent(None)
 
         # Read options directly (no migration)
-        options = get_setting_with_default(APPLY_OPTIONS, self.DEFAULT_APPLY_OPTIONS)
+        options = config.setting[APPLY_OPTIONS]
 
         for option in options:
             log.debug("%s: Processing option for releasetype '%s'", PLUGIN_NAME, option.get("releasetype"))
@@ -190,25 +196,27 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.update_release_type_chks()
 
         # Load other settings
-        self.regex_pattern_1.setPlainText(get_setting_with_default(OST_REGEX, self.DEFAULT_REGEX))
-        self.validate_regex_pattern_1()
-        self.whitelist_text.setPlainText(get_setting_with_default(OST_WHITELIST, self.DEFAULT_WHITELIST))
-        self.enable_live_updates.setChecked(get_setting_with_default(LIVE_UPDATES, False))
+        self.regex_pattern_1.setPlainText(config.setting[OST_REGEX])
+        self.regex_pattern_2.setPlainText(config.setting[OST_REGEX_2])
+        self.enable_regex_1.setChecked(config.setting[ENABLE_REGEX_1])
+        self.enable_regex_2.setChecked(config.setting[ENABLE_REGEX_2])
+        self.validate_regex_patterns()
+        self.whitelist_text.setPlainText(config.setting[OST_WHITELIST])
+        self.enable_live_updates.setChecked(config.setting[LIVE_UPDATES])
         self.run_update.setEnabled(not self.enable_live_updates.isChecked())
 
         self.test_input.setText("")
         self.test_output.setText("")
 
-
     def save(self):
         """Saves the configuration settings (no migration)."""
-        if not self.validate_regex_pattern_1():
+        if not self.validate_regex_patterns():
             raise OptionsCheckError(
                 "Invalid Regex Pattern",
-                "The regex pattern you have entered is invalid. Please correct it before saving."
+                "One or more regex patterns you have entered are invalid. Please correct them before saving."
             )
 
-        original_options = get_setting_with_default(APPLY_OPTIONS, self.DEFAULT_APPLY_OPTIONS)
+        original_options = config.setting[APPLY_OPTIONS]
         saved_apply_options = []
 
         layout = self.gridLayout_2
@@ -233,37 +241,55 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
                 "condition": option.get("condition")
             })
 
-        config.setting[APPLY_OPTIONS] = saved_apply_options
+        config.setting[APPLY_OPTIONS] = saved_apply_options  # type: ignore[index]
 
         # Save other settings
         config.setting[OST_REGEX] = self.regex_pattern_1.toPlainText()  # type: ignore[index]
+        config.setting[OST_REGEX_2] = self.regex_pattern_2.toPlainText()  # type: ignore[index]
+        config.setting[ENABLE_REGEX_1] = self.enable_regex_1.isChecked()  # type: ignore[index]
+        config.setting[ENABLE_REGEX_2] = self.enable_regex_2.isChecked()  # type: ignore[index]
         config.setting[OST_WHITELIST] = self.whitelist_text.toPlainText()  # type: ignore[index]
         config.setting[LIVE_UPDATES] = self.enable_live_updates.isChecked()  # type: ignore[index]
-
 
     def reset_regex_to_default(self):
         """Resets the regex to the default pattern."""
         self.regex_pattern_1.setPlainText(self.DEFAULT_REGEX)
+        self.regex_pattern_2.setPlainText(self.DEFAULT_REGEX_2)
 
-    def validate_regex_pattern_1(self) -> bool:
-        """Validates the regex pattern, compiles it for caching, and updates UI accordingly."""
-        pattern = self.regex_pattern_1.toPlainText()
+    def validate_regex_patterns(self) -> bool:
+        """Validates both regex patterns, compiles them for caching, and updates the UI accordingly."""
+        valid = True
+        pattern1 = self.regex_pattern_1.toPlainText()
         try:
-            self.compiled_regex = re.compile(pattern, flags=re.IGNORECASE)
+            self.compiled_regex = re.compile(pattern1, flags=re.IGNORECASE)
             self.regex_pattern_1.setStyleSheet("")
-            self.regex_error_message.setVisible(False)
-
-            return True
         except re.error as e:
-            log.debug(PLUGIN_NAME + ": Regex validation error: %s", e)
+            log.debug(PLUGIN_NAME + ": Regex 1 validation error: %s", e)
             self.compiled_regex = None
             self.regex_pattern_1.setStyleSheet("background-color: #ffcccc;")
-            self.regex_error_message.setText(f"Regex error: {e}")
-            self.regex_error_message.setVisible(True)
-            return False
+            valid = False
+
+        pattern2 = self.regex_pattern_2.toPlainText()
+        if pattern2:  # Only compile if not empty
+            try:
+                self.compiled_regex_2 = re.compile(pattern2, flags=re.IGNORECASE)
+                self.regex_pattern_2.setStyleSheet("")
+            except re.error as e:
+                log.debug(PLUGIN_NAME + ": Regex 2 validation error: %s", e)
+                self.compiled_regex_2 = None
+                self.regex_pattern_2.setStyleSheet("background-color: #ffcccc;")
+                valid = False
+        else:
+            self.compiled_regex_2 = None
+            self.regex_pattern_2.setStyleSheet("")
+
+        self.regex_error_message.setVisible(not valid)
+        if not valid:
+            self.regex_error_message.setText("One or more regex patterns are invalid.")
+        return valid
 
     def update_run_button_state(self):
-        """Enables or disables the 'Run Update' button based on live updates checkbox."""
+        """Enables or disables the 'Run Update' button based on the live updates checkbox."""
         self.run_update.setEnabled(not self.enable_live_updates.isChecked())
 
     def update_test_output(self):
@@ -294,23 +320,72 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
             return
 
         # Always allow preview but use compiled regex if available
-        if self.compiled_regex:
+        new_title = album_title
+        if self.enable_regex_1.isChecked() and self.compiled_regex:
             try:
-                new_title = self.compiled_regex.sub('', album_title)
-                # Normalise whitespace and strip leading/trailing whitespace
-                new_title = ' '.join(new_title.split()).strip()
-                self.test_output.setText(new_title)
+                new_title = self.compiled_regex.sub('', new_title)
             except Exception as e:
-                log.debug(PLUGIN_NAME + ": Preview error: %s", e)
-                self.test_output.setText(f"Regex error: {e}")
-        else:
-            self.test_output.setText("Invalid regex pattern")
+                log.debug(PLUGIN_NAME + ": Preview error on regex 1: %s", e)
+                self.test_output.setText(f"Regex 1 error: {e}")
+                return
+
+        if self.enable_regex_2.isChecked() and self.compiled_regex_2:
+            try:
+                new_title = self.compiled_regex_2.sub('', new_title)
+            except Exception as e:
+                log.debug(PLUGIN_NAME + ": Preview error on regex 2: %s", e)
+                self.test_output.setText(f"Regex 2 error: {e}")
+                return
+
+        # Normalise whitespace and strip leading/trailing whitespace
+        new_title = ' '.join(new_title.split()).strip()
+        self.test_output.setText(new_title)
+
+
+# cache with lock for thread safety
+_cache_lock = threading.Lock()
+_regex_cache = {
+    'compiled_regex': None,
+    'compiled_regex_2': None,
+    'last_regex': None,
+    'last_regex_2': None
+}
 
 def title_cleaner_ost(album, metadata, release):
     log.debug("%s: title_cleaner_ost called for album '%s'", PLUGIN_NAME, metadata.get("album", "<no album>"))
     regex = config.setting[OST_REGEX]  # type: ignore[index]
+    regex_2 = config.setting[OST_REGEX_2]  # type: ignore[index]
+
+    enable_regex_1 = config.setting[ENABLE_REGEX_1]  # type: ignore[index]
+    enable_regex_2 = config.setting[ENABLE_REGEX_2]  # type: ignore[index]
     whitelist = config.setting[OST_WHITELIST]  # type: ignore[index]
     apply_options = config.setting[APPLY_OPTIONS]  # type: ignore[index]
+
+    # Atomic check, compile, and update for regex 1 under lock (only if compilation succeeds)
+    with _cache_lock:
+        if regex != _regex_cache['last_regex']:
+            if regex:
+                try:
+                    new_compiled = re.compile(regex, flags=re.IGNORECASE)
+                    _regex_cache['compiled_regex'] = new_compiled
+                    _regex_cache['last_regex'] = regex
+                except re.error as e:
+                    log.error("%s: Failed to compile regex 1: %s", PLUGIN_NAME, e)
+                    # Do not update cache on failure
+        compiled_regex = _regex_cache['compiled_regex']
+
+    # Atomic check, compile, and update for regex 2 under lock (only if compilation succeeds)
+    with _cache_lock:
+        if regex_2 != _regex_cache['last_regex_2']:
+            if regex_2:
+                try:
+                    new_compiled_2 = re.compile(regex_2, flags=re.IGNORECASE)
+                    _regex_cache['compiled_regex_2'] = new_compiled_2
+                    _regex_cache['last_regex_2'] = regex_2
+                except re.error as e:
+                    log.error("%s: Failed to compile regex 2: %s", PLUGIN_NAME, e)
+                    # Do not update cache on failure
+        compiled_regex_2 = _regex_cache['compiled_regex_2']
 
     # Normalise whitelist titles using Unicode NFC normalization
     whitelist_titles = [
@@ -358,16 +433,20 @@ def title_cleaner_ost(album, metadata, release):
             return
 
         if should_process:
+            new_title = album_title
             try:
-                compiled_regex = re.compile(regex, flags=re.IGNORECASE)
-                new_title = compiled_regex.sub('', album_title)
-                # Normalise whitespace and strip leading/trailing whitespace
+                if enable_regex_1 and compiled_regex:
+                    new_title = compiled_regex.sub('', new_title)
+                if enable_regex_2 and compiled_regex_2:
+                    new_title = compiled_regex_2.sub('', new_title)
+                # Normalise whitespace and strip leading/trailing whitespace once after both substitutions
                 new_title = ' '.join(new_title.split()).strip()
                 metadata["album"] = new_title
                 log.debug("%s: Changed album title from '%s' to '%s'", PLUGIN_NAME, album_title, new_title)
-            except re.error as e:
+            except Exception as e:
                 log.error("%s: Regex application error: %s", PLUGIN_NAME, e)
 
-log.debug("%s: registration", PLUGIN_NAME)
+
+# Register the plugin
 register_options_page(RemoveReleaseTitleOstIndicatorOptionsPage)
 register_album_metadata_processor(title_cleaner_ost)

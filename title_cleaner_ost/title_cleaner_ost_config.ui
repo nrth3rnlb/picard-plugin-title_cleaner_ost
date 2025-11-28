@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>714</width>
-    <height>800</height>
+       <width>745</width>
+       <height>1236</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,9 +35,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
-        <width>681</width>
-        <height>961</height>
+           <y>-57</y>
+           <width>712</width>
+           <height>1273</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -63,10 +63,69 @@
            <number>9</number>
           </property>
           <item>
+              <widget class="QGroupBox" name="groupBox_5">
+                  <property name="title">
+                      <string>1st Regex</string>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_2">
+                      <item>
+                          <widget class="QCheckBox" name="enable_regex_1">
+                              <property name="text">
+                                  <string>active</string>
+                              </property>
+                              <property name="checked">
+                                  <bool>true</bool>
+                              </property>
+                          </widget>
+                      </item>
+                      <item>
               <widget class="QPlainTextEdit" name="regex_pattern_1">
-            <property name="toolTip">
-             <string>Enter your own regular expression pattern here for removing soundtrack additions. The validity is checked as you type.</string>
-            </property>
+                  <property name="minimumSize">
+                      <size>
+                          <width>0</width>
+                          <height>20</height>
+                      </size>
+                  </property>
+                  <property name="toolTip">
+                      <string>Enter your own regular expression pattern here for removing soundtrack additions. The
+                          validity is checked as you type.
+                      </string>
+                  </property>
+              </widget>
+                      </item>
+                  </layout>
+              </widget>
+          </item>
+             <item>
+                 <widget class="QGroupBox" name="groupBox_6">
+                     <property name="title">
+                         <string>2nd Regex</string>
+                     </property>
+                     <layout class="QHBoxLayout" name="horizontalLayout_3">
+                         <item>
+                             <widget class="QCheckBox" name="enable_regex_2">
+                                 <property name="text">
+                                     <string>active</string>
+                                 </property>
+                             </widget>
+                         </item>
+                         <item>
+                             <widget class="QPlainTextEdit" name="regex_pattern_2">
+                                 <property name="sizePolicy">
+                                     <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                                         <horstretch>0</horstretch>
+                                         <verstretch>0</verstretch>
+                                     </sizepolicy>
+                                 </property>
+                                 <property name="minimumSize">
+                                     <size>
+                                         <width>0</width>
+                                         <height>20</height>
+                                     </size>
+                                 </property>
+                             </widget>
+                         </item>
+                     </layout>
            </widget>
           </item>
           <item>
@@ -313,6 +372,19 @@ Another Album Name</string>
           </item>
          </layout>
         </widget>
+       </item>
+          <item>
+              <spacer name="verticalSpacer">
+                  <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                      <size>
+                          <width>20</width>
+                          <height>40</height>
+                      </size>
+                  </property>
+              </spacer>
        </item>
       </layout>
      </widget>
