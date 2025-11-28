@@ -123,7 +123,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
 
         # Test field logic
         self.test_input.textChanged.connect(self.update_test_output)
-        self.regex_pattern.textChanged.connect(self.update_test_output)
+        self.regex_pattern_1.textChanged.connect(self.update_test_output)
         self.whitelist_text.textChanged.connect(self.update_test_output)
         self.enable_live_updates.stateChanged.connect(self.update_test_output)
         self.enable_live_updates.stateChanged.connect(self.update_run_button_state)
@@ -132,7 +132,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.reset_button.clicked.connect(self.reset_regex_to_default)
 
         # Regex validation with every change
-        self.regex_pattern.textChanged.connect(self.on_regex_changed)
+        self.regex_pattern_1.textChanged.connect(self.on_regex_changed)
 
         # Run Update button
         self.run_update.clicked.connect(self.force_update_test_output)
@@ -156,7 +156,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.update_test_output()
 
     def on_regex_changed(self):
-        self.validate_regex_pattern()
+        self.validate_regex_pattern_1()
 
     def load(self):
         """Loads the regex, whitelist, and checkbox state from config into the UI."""
@@ -190,8 +190,8 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         self.update_release_type_chks()
 
         # Load other settings
-        self.regex_pattern.setPlainText(get_setting_with_default(OST_REGEX, self.DEFAULT_REGEX))
-        self.validate_regex_pattern()
+        self.regex_pattern_1.setPlainText(get_setting_with_default(OST_REGEX, self.DEFAULT_REGEX))
+        self.validate_regex_pattern_1()
         self.whitelist_text.setPlainText(get_setting_with_default(OST_WHITELIST, self.DEFAULT_WHITELIST))
         self.enable_live_updates.setChecked(get_setting_with_default(LIVE_UPDATES, False))
         self.run_update.setEnabled(not self.enable_live_updates.isChecked())
@@ -202,7 +202,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
 
     def save(self):
         """Saves the configuration settings (no migration)."""
-        if not self.validate_regex_pattern():
+        if not self.validate_regex_pattern_1():
             raise OptionsCheckError(
                 "Invalid Regex Pattern",
                 "The regex pattern you have entered is invalid. Please correct it before saving."
@@ -236,28 +236,28 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         config.setting[APPLY_OPTIONS] = saved_apply_options
 
         # Save other settings
-        config.setting[OST_REGEX] = self.regex_pattern.toPlainText()  # type: ignore[index]
+        config.setting[OST_REGEX] = self.regex_pattern_1.toPlainText()  # type: ignore[index]
         config.setting[OST_WHITELIST] = self.whitelist_text.toPlainText()  # type: ignore[index]
         config.setting[LIVE_UPDATES] = self.enable_live_updates.isChecked()  # type: ignore[index]
 
 
     def reset_regex_to_default(self):
         """Resets the regex to the default pattern."""
-        self.regex_pattern.setPlainText(self.DEFAULT_REGEX)
+        self.regex_pattern_1.setPlainText(self.DEFAULT_REGEX)
 
-    def validate_regex_pattern(self) -> bool:
+    def validate_regex_pattern_1(self) -> bool:
         """Validates the regex pattern, compiles it for caching, and updates UI accordingly."""
-        pattern = self.regex_pattern.toPlainText()
+        pattern = self.regex_pattern_1.toPlainText()
         try:
             self.compiled_regex = re.compile(pattern, flags=re.IGNORECASE)
-            self.regex_pattern.setStyleSheet("")
+            self.regex_pattern_1.setStyleSheet("")
             self.regex_error_message.setVisible(False)
 
             return True
         except re.error as e:
             log.debug(PLUGIN_NAME + ": Regex validation error: %s", e)
             self.compiled_regex = None
-            self.regex_pattern.setStyleSheet("background-color: #ffcccc;")
+            self.regex_pattern_1.setStyleSheet("background-color: #ffcccc;")
             self.regex_error_message.setText(f"Regex error: {e}")
             self.regex_error_message.setVisible(True)
             return False

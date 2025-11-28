@@ -63,7 +63,7 @@
            <number>9</number>
           </property>
           <item>
-           <widget class="QPlainTextEdit" name="regex_pattern">
+              <widget class="QPlainTextEdit" name="regex_pattern_1">
             <property name="toolTip">
              <string>Enter your own regular expression pattern here for removing soundtrack additions. The validity is checked as you type.</string>
             </property>
