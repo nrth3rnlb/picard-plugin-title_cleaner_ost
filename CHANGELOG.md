@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.4.1 (2025-11-30)
+
+### Bug Fixes
+
+- **init**: Move options page logic to separate module and update imports
+  ([`c3ab003`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/c3ab00386b9c04e99ae7fe3bb2c9d857c5d1a747))
+
+
 ## v1.4.0 (2025-11-30)
 
 ### Documentation
