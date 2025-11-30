@@ -20,7 +20,7 @@ import threading
 import unicodedata
 from typing import List, Dict, Any, Pattern, Optional
 
-from PyQt5 import uic
+from PyQt5 import uic  # type: ignore
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import (
     QCheckBox,
@@ -118,6 +118,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
     compiled_regexes: List[Optional[Pattern[Any]]]
     configured_regexes: List[Dict[str, Any]] = []
     test_output: QLabel
+    apply_option_checkboxes: Dict[str, QCheckBox]
 
     options = [
         ListOption("setting", SETTING_NAME_DEFINED_REGEXES, MODULE_DEFAULT_REGEX_LIST),
@@ -135,6 +136,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
 
         # UI has a container named regex_containers_layout_layout for dynamic widgets
         self.regex_widgets: List[Dict[str, Any]] = []
+        self.apply_option_checkboxes = {}
 
         # ToDo: I'll have to come up with something else for that.
         # self.regex_help.setText(self.REGEX_DESCRIPTION_MD)
@@ -327,31 +329,34 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
 
         self.validate_regex_patterns()
 
-        # # Clear dynamic checkboxes (keep the first "all" checkbox)
-        # layout = self.gridLayout_2
-        # while layout.count() > 1:
-        #     item = layout.takeAt(layout.count() - 1)
-        #     if item:
-        #         w = item.widget()
-        #         if w:
-        #             w.setParent(None)
+        # Clear dynamic checkboxes (keep the first "all" checkbox)
+        layout = self.gridLayout_2
+        while layout.count() > 1:
+            item = layout.takeAt(1)  # Always remove the item after "all"
+            if item and item.widget():
+                item.widget().deleteLater()
 
-        options = config.setting[SETTING_NAME_APPLY_OPTIONS]
+        self.apply_option_checkboxes.clear()
 
-        for option in options:
-            log.debug("%s: Processing option for releasetype '%s'", PLUGIN_NAME, option.get("releasetype"))
-            if option.get("releasetype") == "all":
-                self.chk_all_release_types.setText(option.get("text", self.chk_all_release_types.text()))
-                self.chk_all_release_types.setToolTip(option.get("tooltip", self.chk_all_release_types.toolTip()))
-                self.chk_all_release_types.setChecked(bool(option.get("enabled", False)))
+        apply_options = config.setting[SETTING_NAME_APPLY_OPTIONS]
+
+        for apply_option in apply_options:
+            log.debug("%s: Processing option for releasetype '%s'", PLUGIN_NAME, apply_option.get("releasetype"))
+            releasetype = apply_option.get("releasetype")
+            if releasetype == "all":
+                self.chk_all_release_types.setText(apply_option.get("text", self.chk_all_release_types.text()))
+                self.chk_all_release_types.setToolTip(apply_option.get("tooltip", self.chk_all_release_types.toolTip()))
+                self.chk_all_release_types.setChecked(bool(apply_option.get("enabled", False)))
                 self.chk_all_release_types.stateChanged.connect(self.update_release_type_chks)
+                self.apply_option_checkboxes["all"] = self.chk_all_release_types
                 continue
 
-            chk = QCheckBox(option.get("releasetype", ""))
-            chk.setText(option.get("text", ""))
-            chk.setToolTip(option.get("tooltip", ""))
-            chk.setChecked(bool(option.get("enabled", False)))
+            chk = QCheckBox(apply_option.get("releasetype", ""))
+            chk.setText(apply_option.get("text", ""))
+            chk.setToolTip(apply_option.get("tooltip", ""))
+            chk.setChecked(bool(apply_option.get("enabled", False)))
             self.gridLayout_2.addWidget(chk)
+            self.apply_option_checkboxes[releasetype] = chk
 
         self.update_release_type_chks()
 
@@ -383,27 +388,15 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         original_options = config.setting[SETTING_NAME_APPLY_OPTIONS]
         saved_apply_options = []
 
-        layout = self.gridLayout_2
-        layout_index = 1  # itemAt(0) is the "All Release Types" checkbox
         for option in original_options:
-            if option.get("releasetype") == "all":
-                checked = bool(self.chk_all_release_types.isChecked())
-            else:
-                item = layout.itemAt(layout_index)
-                if item is None or item.widget() is None:
-                    checked = bool(option.get("enabled", False))
-                else:
-                    if item is not None:
-                        widget = item.widget()
-                        if widget is not None and isinstance(widget, QCheckBox):
-                            checked = bool(widget.isChecked())
-                layout_index += 1
+            releasetype = option.get("releasetype")
+            checkbox = self.apply_option_checkboxes.get(releasetype)
 
             saved_apply_options.append({
-                "releasetype": option.get("releasetype"),
+                "releasetype": releasetype,
                 "text": option.get("text", ""),
                 "tooltip": option.get("tooltip", ""),
-                "enabled": checked,
+                "enabled": checkbox.isChecked() if checkbox else option.get("enabled", False),
                 "condition": option.get("condition")
             })
 
@@ -492,7 +485,6 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
         # Normalise whitespace and strip leading/trailing whitespace
         new_title = ' '.join(new_title.split()).strip()
         self.test_output.setText(new_title)
-
 
 # cache with lock for thread safety
 _cache_lock: threading.Lock = threading.Lock()

@@ -126,46 +126,11 @@
                           </widget>
                       </item>
                       <item>
-                          <widget class="QLabel" name="label_2">
-                              <property name="sizePolicy">
-                                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                                      <horstretch>0</horstretch>
-                                      <verstretch>0</verstretch>
-                                  </sizepolicy>
-                              </property>
+                          <widget class="QPushButton" name="run_update">
                               <property name="text">
-                                  <string>and applies to the following release types</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-              <widget class="QLabel" name="only_applies_to">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>30</height>
-             </size>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::Panel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Sunken</enum>
-            </property>
-            <property name="text">
-                <string/>
-            </property>
-            <property name="textInteractionFlags">
-                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-              <widget class="QPushButton" name="run_update">
-                  <property name="text">
-                      <string>Run Test</string>
-                  </property>
-              </widget>
+                                  <string>Run Test</string>
+                              </property>
+                          </widget>
           </item>
                       <item>
                           <widget class="QCheckBox" name="enable_live_updates">
