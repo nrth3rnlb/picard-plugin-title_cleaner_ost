@@ -4,9 +4,9 @@ version = "1.4.0"
 readme = "README.md"
 description = "Title Cleaner OST is a plugin for MusicBrainz Picard that removes soundtrack-related information from album titles."
 keywords = ["musicbrainz", "picard", "plugin", "music", "organization"]
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 authors = [
-    {name = "nrth3rnlb"}
+    { name = "nrth3rnlb" }
 ]
 requires-python = ">=3.9"
 dependencies = []
