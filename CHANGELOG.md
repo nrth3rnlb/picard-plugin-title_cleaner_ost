@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v1.4.0 (2025-11-30)
+
+### Documentation
+
+- **init**: Update regex101 links and plugin API versions
+  ([`def5b3d`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/def5b3d5fe668f56136cf5095f0d8c5f4da9cbce))
+
+### Features
+
+- **init**: Add support for multiple configurable regex patterns
+  ([`a0232d1`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/a0232d1d642b834f7b2147117aadbee34f8d9955))
+
+- **ui**: Implement dynamic multiple regex containers and config migration
+  ([`8379b78`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/8379b7851595b6488f698940a7ab5eb9c48c4126))
+
+
 ## v1.3.3 (2025-11-15)
 
 ### Bug Fixes
