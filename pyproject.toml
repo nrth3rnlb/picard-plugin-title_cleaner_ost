@@ -8,7 +8,7 @@ license = {file = "LICENSE"}
 authors = [
     {name = "nrth3rnlb"}
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = []
 
 [project.optional-dependencies]
@@ -26,7 +26,18 @@ dev = [
     "PyJWT~=2.0",
     "python-dateutil~=2.7",
     "python_libdiscid~=2.0",
+    "mypy>=1.19.0",
+    "pyright>=1.1.407",
+    "pyqt5-stubs>=5.15.0"
 ]
+
+[tool.pyright]
+typeCheckingMode = "basic"
+reportMissingTypeStubs = "none"
+stubPath = "typings"
+extraPaths = []
+mypy_path = "typings"
+
 
 [tool.setuptools.packages.find]
 include = ["title_cleaner_ost*"]
@@ -53,12 +64,17 @@ exclude_lines = [
 ]
 
 [tool.mypy]
+python_version = "3.9"
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
 exclude = [
     "ui_.*\\.py$",
     ".*_ui\\.py$"
 ]
-ignore_missing_imports = true
-warn_unused_ignores = false
+
 
 [tool.ruff]
 exclude = [
@@ -87,7 +103,7 @@ changelog_file = "CHANGELOG.md"
 output_format = "md"
 
 [tool.semantic_release.changelog]
-# Recommended patterns for conventional commits parser that is scope aware
+# Recommended patterns for conventional commits parser that is 'scope-aware'
 exclude_commit_patterns = [
     '''chore(?:\([^)]*?\))?: .+''',
     '''ci(?:\([^)]*?\))?: .+''',

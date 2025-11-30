@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0" idbasedtr="true">
+    <author>nrth3rnlb</author>
+    <class>container_regex_n</class>
+    <widget class="QWidget" name="container_regex_n">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>431</width>
+                <height>264</height>
+            </rect>
+        </property>
+        <layout class="QVBoxLayout" name="layout_container_regex_n">
+            <item>
+                <widget class="QWidget" name="pattern_and_buttons_regex_n" native="true">
+                    <layout class="QHBoxLayout" name="layout_pattern_and_buttons_regex_n">
+                        <item>
+                            <widget class="QPlainTextEdit" name="pattern_regex_n">
+                                <property name="minimumSize">
+                                    <size>
+                                        <width>0</width>
+                                        <height>20</height>
+                                    </size>
+                                </property>
+                                <property name="toolTip">
+                                    <string>Enter your own regular expression pattern here for removing
+                                        soundtrack additions. The
+                                        validity is checked as you type.
+                                    </string>
+                                </property>
+                            </widget>
+                        </item>
+                        <item>
+                            <widget class="QWidget" name="buttons_regex_n" native="true">
+                                <layout class="QVBoxLayout" name="layout_buttons_regex_n">
+                                    <item>
+                                        <spacer name="v_space_regex_n">
+                                            <property name="orientation">
+                                                <enum>Qt::Vertical</enum>
+                                            </property>
+                                            <property name="sizeHint" stdset="0">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>40</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </item>
+                                    <item>
+                                        <widget class="QCheckBox" name="enable_regex_n">
+                                            <property name="text">
+                                                <string>activated</string>
+                                            </property>
+                                            <property name="checked">
+                                                <bool>true</bool>
+                                            </property>
+                                        </widget>
+                                    </item>
+                                    <item>
+                                        <widget class="QPushButton" name="reset_regex_n">
+                                            <property name="toolTip">
+                                                <string>Resets the regex pattern.</string>
+                                            </property>
+                                            <property name="text">
+                                                <string>Restore Default</string>
+                                            </property>
+                                        </widget>
+                                    </item>
+                                    <item>
+                                        <widget class="QPushButton" name="pushButton">
+                                            <property name="toolTip">
+                                                <string>Removes the regex completely.</string>
+                                            </property>
+                                            <property name="text">
+                                                <string>Remove Regex</string>
+                                            </property>
+                                        </widget>
+                                    </item>
+                                </layout>
+                            </widget>
+                        </item>
+                    </layout>
+                </widget>
+            </item>
+            <item>
+                <widget class="QLabel" name="error_message_regex_n">
+                    <property name="minimumSize">
+                        <size>
+                            <width>0</width>
+                            <height>30</height>
+                        </size>
+                    </property>
+                    <property name="styleSheet">
+                        <string notr="true">color: red;</string>
+                    </property>
+                    <property name="frameShape">
+                        <enum>QFrame::Panel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>QFrame::Sunken</enum>
+                    </property>
+                    <property name="text">
+                        <string>Error messages</string>
+                    </property>
+                    <property name="textFormat">
+                        <enum>Qt::PlainText</enum>
+                    </property>
+                </widget>
+            </item>
+        </layout>
+    </widget>
+    <resources/>
+    <connections/>
+</ui>

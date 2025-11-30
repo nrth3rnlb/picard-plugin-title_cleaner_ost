@@ -70,7 +70,7 @@
 
 ### Features
 
-- Add GNU General Public License v2 to the repository
+- Add GNU Public Licence v2 to the repository
   ([`551777d`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/551777d1d769aab95a14bbcdf23db99def4e58b9))
 
 
