@@ -4,7 +4,7 @@ import unicodedata
 from re import Pattern
 from typing import List, Dict, Any, Optional
 
-from PyQt5 import uic  # type: ignore
+from PyQt5 import uic  # type: ignore # uic has no type stubs
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QLineEdit, QPlainTextEdit, QCheckBox, QPushButton, QWidget, QVBoxLayout, QGridLayout, \
     QLabel, QHBoxLayout, QFrame
@@ -151,14 +151,16 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
 
         layout_buttons_regex_n.addWidget(enable_regex_n)
 
-        reset_regex_n = QPushButton(buttons_regex_n)
-        reset_regex_n.setObjectName(f"reset_regex_{index}")
-        reset_regex_n.setText("Restore Default")
-        reset_regex_n.setToolTip("Resets the regex pattern.")
+        # Button to reset the regex to the default pattern (empty string) for the first regex only
+        if index == 0:
+            reset_regex_n = QPushButton(buttons_regex_n)
+            reset_regex_n.setObjectName(f"reset_regex_{index}")
+            reset_regex_n.setText("Restore Default")
+            reset_regex_n.setToolTip("Resets the regex pattern.")
 
-        reset_regex_n.clicked.connect(lambda: self.reset_regex_n_to_default(index))
+            reset_regex_n.clicked.connect(lambda: self.reset_regex_n_to_default(index))
 
-        layout_buttons_regex_n.addWidget(reset_regex_n)
+            layout_buttons_regex_n.addWidget(reset_regex_n)
 
         # Button to remove a regex but not for the first
         if index > 0:
@@ -303,7 +305,7 @@ class RemoveReleaseTitleOstIndicatorOptionsPage(OptionsPage):
             )
 
         self.configured_regexes.clear()
-        for i, regex_dict in enumerate(self.regex_widgets, start=1):
+        for i, regex_dict in enumerate(self.regex_widgets, start=0):
             self.configured_regexes.append({
                 "pattern": regex_dict["text"].toPlainText(),
                 "enabled": regex_dict["checkbox"].isChecked(),
