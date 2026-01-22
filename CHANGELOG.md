@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v1.4.2 (2026-01-22)
+
+### Bug Fixes
+
+- **options**: Update reset button logic for regex patterns and adjust dependencies
+  ([`234fa7f`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/234fa7fc47b66a2694f0d32668773452eafb0fed))
+
+
+ssh-add ## Unreleased
+
+### Bug Fixes
+
+- **options**: Update reset button logic for regex patterns and adjust dependencies
+  ([`234fa7f`](https://github.com/nrth3rnlb/picard-plugin-title_cleaner_ost/commit/234fa7fc47b66a2694f0d32668773452eafb0fed))
+
+
 ## v1.4.1 (2025-11-30)
 
 ### Bug Fixes
